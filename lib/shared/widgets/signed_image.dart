@@ -1,37 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/tokens.dart';
-import '../../data/providers.dart';
-import '../../data/repositories/storage_repository.dart';
 
-/// Loads a private storage object through a signed URL.
-class SignedImage extends ConsumerWidget {
-  const SignedImage({super.key, required this.path, this.bucket = StorageRepository.mediaBucket, this.fit = BoxFit.cover, this.cacheWidth, this.semanticLabel});
-  final String path, bucket;
+/// Renders a photo from a ready-to-use (already signed) URL provided by the
+/// backend. Shows a placeholder while `url` is null (still loading) and a
+/// "not supported" icon if it fails to load.
+class SignedImage extends StatelessWidget {
+  const SignedImage({super.key, required this.url, this.fit = BoxFit.cover, this.cacheWidth, this.semanticLabel});
+  final String? url;
   final BoxFit fit;
   final int? cacheWidth;
   final String? semanticLabel;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final url = ref.watch(signedUrlProvider((bucket: bucket, path: path)));
+  Widget build(BuildContext context) {
     final c = context.cm;
-    return url.when(
-      data: (u) => Image.network(
-        u,
-        fit: fit,
-        cacheWidth: cacheWidth,
-        semanticLabel: semanticLabel ?? 'Photo',
-        gaplessPlayback: true,
-        frameBuilder: (_, child, frame, sync) => AnimatedOpacity(opacity: frame == null && !sync ? 0 : 1, duration: Mo.slow, child: child),
-        errorBuilder: (_, _, _) => ColoredBox(
-          color: c.surfaceHigh,
-          child: Center(child: Icon(Icons.image_not_supported_outlined, color: c.muted)),
-        ),
-      ),
-      loading: () => ColoredBox(color: c.surfaceHigh),
-      error: (_, _) => ColoredBox(
+    final u = url;
+    if (u == null) return ColoredBox(color: c.surfaceHigh);
+    return Image.network(
+      u,
+      fit: fit,
+      cacheWidth: cacheWidth,
+      semanticLabel: semanticLabel ?? 'Photo',
+      gaplessPlayback: true,
+      frameBuilder: (_, child, frame, sync) => AnimatedOpacity(opacity: frame == null && !sync ? 0 : 1, duration: Mo.slow, child: child),
+      errorBuilder: (_, _, _) => ColoredBox(
         color: c.surfaceHigh,
         child: Center(child: Icon(Icons.image_not_supported_outlined, color: c.muted)),
       ),

@@ -1,52 +1,35 @@
-import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../core/services/api_client.dart';
 import '../core/services/location_service.dart';
 import '../core/services/weather_service.dart';
+import 'models/app_user.dart';
 import 'models/moment.dart';
 import 'models/preferences.dart';
 import 'repositories/auth_repository.dart';
 import 'repositories/moment_repository.dart';
 import 'repositories/preferences_repository.dart';
 import 'repositories/profile_repository.dart';
-import 'repositories/storage_repository.dart';
 
-final supabaseProvider = Provider<SupabaseClient>((ref) => Supabase.instance.client);
+final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
 
-final authRepoProvider = Provider((ref) => AuthRepository(ref.watch(supabaseProvider)));
-final storageRepoProvider = Provider((ref) => StorageRepository(ref.watch(supabaseProvider)));
-final momentRepoProvider = Provider((ref) => MomentRepository(ref.watch(supabaseProvider), ref.watch(storageRepoProvider)));
-final prefsRepoProvider = Provider((ref) => PreferencesRepository(ref.watch(supabaseProvider)));
-final profileRepoProvider = Provider((ref) => ProfileRepository(ref.watch(supabaseProvider), ref.watch(storageRepoProvider)));
+final authRepoProvider = Provider((ref) => AuthRepository(ref.watch(apiClientProvider)));
+final momentRepoProvider = Provider((ref) => MomentRepository(ref.watch(apiClientProvider)));
+final prefsRepoProvider = Provider((ref) => PreferencesRepository(ref.watch(apiClientProvider)));
+final profileRepoProvider = Provider((ref) => ProfileRepository(ref.watch(apiClientProvider)));
 final locationServiceProvider = Provider((ref) => LocationService());
 final weatherServiceProvider = Provider((ref) => WeatherService());
 
-/// Emits on every sign-in / sign-out / token refresh.
-final authStateProvider = StreamProvider<AuthState>((ref) => ref.watch(authRepoProvider).changes);
+/// Emits on every sign-in / sign-out / session expiry.
+final authStateProvider = StreamProvider<AppAuthChange>((ref) => ref.watch(authRepoProvider).changes);
 
 /// The signed-in user, or null.
-final sessionUserProvider = Provider<User?>((ref) {
+final sessionUserProvider = Provider<AppUser?>((ref) {
   ref.watch(authStateProvider);
   return ref.watch(authRepoProvider).currentUser;
 });
-
-class RecoveryNotifier extends Notifier<bool> {
-  @override
-  bool build() {
-    final sub = ref.watch(authRepoProvider).changes.listen((s) {
-      if (s.event == AuthChangeEvent.passwordRecovery) state = true;
-    });
-    ref.onDispose(sub.cancel);
-    return false;
-  }
-
-  void clear() => state = false;
-}
-
-final passwordRecoveryProvider = NotifierProvider<RecoveryNotifier, bool>(RecoveryNotifier.new);
 
 // ── preferences ─────────────────────────────────────────────────────────
 class PreferencesNotifier extends AsyncNotifier<UserPreferences?> {
@@ -152,13 +135,6 @@ class LastCreatedNotifier extends Notifier<String?> {
 }
 
 final lastCreatedProvider = NotifierProvider<LastCreatedNotifier, String?>(LastCreatedNotifier.new);
-
-// ── media ───────────────────────────────────────────────────────────────
-final signedUrlProvider = FutureProvider.family<String, ({String bucket, String path})>((ref, k) {
-  final link = ref.keepAlive();
-  Timer(const Duration(minutes: 40), link.close);
-  return ref.watch(storageRepoProvider).signedUrl(k.bucket, k.path);
-});
 
 // ── weather (optional) ──────────────────────────────────────────────────
 final weatherProvider = FutureProvider<Weather?>((ref) async {

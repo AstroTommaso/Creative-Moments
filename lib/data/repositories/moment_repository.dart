@@ -1,10 +1,9 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:supabase_flutter/supabase_flutter.dart';
-
+import '../../core/services/api_client.dart';
 import '../models/drawing.dart';
 import '../models/moment.dart';
-import 'storage_repository.dart';
 
 /// Everything needed to persist the core of a moment (autosave payload).
 class MomentCoreSave {
@@ -38,57 +37,50 @@ class MomentCoreSave {
 }
 
 class MomentRepository {
-  MomentRepository(this._client, this._storage);
-  final SupabaseClient _client;
-  final StorageRepository _storage;
+  MomentRepository(this._api);
+  final ApiClient _api;
 
   Future<List<Moment>> list({int limit = 500}) async {
-    final rows = await _client.from('moments').select(Moment.select).order('created_at', ascending: false).limit(limit);
-    return [for (final r in rows) Moment.fromJson(r)];
+    final res = await _api.get('/api/moments');
+    return [for (final m in res['moments'] as List) Moment.fromJson(m as Map<String, dynamic>)];
   }
 
   Future<Moment?> get(String id) async {
-    final row = await _client.from('moments').select(Moment.select).eq('id', id).maybeSingle();
-    return row == null ? null : Moment.fromJson(row);
+    try {
+      final res = await _api.get('/api/moments/$id');
+      return Moment.fromJson(res['moment'] as Map<String, dynamic>);
+    } on ApiException catch (e) {
+      if (e.status == 404) return null;
+      rethrow;
+    }
   }
 
   /// Idempotent: ids are generated on the client, so a retry after a dropped
-  /// response cannot create duplicates.
-  Future<void> saveCore(MomentCoreSave s) async {
-    await _client.from('moments').upsert({
-      'id': s.id,
-      'user_id': s.userId,
+  /// response cannot create duplicates (the backend upserts by this id).
+  Future<void> saveCore(MomentCoreSave s) => _api.put(
+    '/api/moments/${s.id}',
+    body: {
       'title': s.title,
-      'creation_type': s.creationType,
+      'creationType': s.creationType,
+      'createdAt': s.createdAt.toUtc().toIso8601String(),
       'mood': s.mood,
       'atmosphere': s.atmosphere,
-      'time_of_day': s.timeOfDay,
-      'location_name': s.locationName,
+      'timeOfDay': s.timeOfDay,
+      'locationName': s.locationName,
       'latitude': s.latitude,
       'longitude': s.longitude,
-      'music_title': s.musicTitle,
-      'music_artist': s.musicArtist,
-      'music_album': s.musicAlbum,
-      'music_artwork_url': s.musicArtworkUrl,
-      'created_at': s.createdAt.toUtc().toIso8601String(),
-    });
-    final rows = <Map<String, dynamic>>[];
-    if (s.textCreationId != null) {
-      rows.add({'id': s.textCreationId, 'moment_id': s.id, 'type': 'text', 'text_content': s.text ?? ''});
-    }
-    if (s.drawingCreationId != null && s.drawing != null) {
-      rows.add({'id': s.drawingCreationId, 'moment_id': s.id, 'type': 'drawing', 'drawing_data': s.drawing!.toJson()});
-    }
-    if (rows.isNotEmpty) await _client.from('creations').upsert(rows);
-  }
-
-  Future<void> saveDetails(String momentId, List<Inspiration> inspirations, List<PromptAnswer> prompts) => _client.rpc(
-    'save_moment_details',
-    params: {
-      'p_moment_id': momentId,
-      'p_inspirations': [for (final i in inspirations) i.toJson()],
-      'p_prompts': [for (final p in prompts) p.toJson()],
+      'musicTitle': s.musicTitle,
+      'musicArtist': s.musicArtist,
+      'musicAlbum': s.musicAlbum,
+      'musicArtworkUrl': s.musicArtworkUrl,
+      if (s.textCreationId != null) 'text': {'id': s.textCreationId, 'content': s.text ?? ''},
+      if (s.drawingCreationId != null && s.drawing != null) 'drawing': {'id': s.drawingCreationId, 'data': s.drawing!.toJson()},
     },
+  );
+
+  Future<void> saveDetails(String momentId, List<Inspiration> inspirations, List<PromptAnswer> prompts) => _api.put(
+    '/api/moments/$momentId/details',
+    body: {'inspirations': [for (final i in inspirations) i.toJson()], 'prompts': [for (final p in prompts) p.toJson()]},
   );
 
   Future<MediaItem> addMedia({
@@ -101,30 +93,27 @@ class MomentRepository {
     Map<String, dynamic> metadata = const {},
     String? fileName,
   }) async {
-    final name = fileName ?? '${DateTime.now().microsecondsSinceEpoch}.$ext';
-    final path = '$userId/$momentId/$name';
-    await _storage.upload(StorageRepository.mediaBucket, path, bytes, contentType: contentType, upsert: true);
-    final row = await _client.from('media').insert({'moment_id': momentId, 'type': type, 'storage_path': path, 'metadata': metadata}).select().single();
-    return MediaItem.fromJson(row);
+    final res = await _api.upload(
+      'POST',
+      '/api/moments/$momentId/media',
+      bytes: bytes,
+      filename: fileName ?? 'upload.$ext',
+      contentType: contentType,
+      fields: {'type': type, if (metadata.isNotEmpty) 'metadata': jsonEncode(metadata)},
+    );
+    return MediaItem.fromJson(res['media'] as Map<String, dynamic>);
   }
 
-  Future<void> removeMedia(MediaItem m) async {
-    await _client.from('media').delete().eq('id', m.id);
-    await _storage.remove(StorageRepository.mediaBucket, [m.storagePath]);
+  /// Overwrites an existing media item's file in place (same row, same
+  /// storage path) — used when re-saving a drawing that already has a PNG.
+  Future<MediaItem> replaceMedia(MediaItem existing, Uint8List bytes, {required String contentType}) async {
+    final res = await _api.upload('PUT', '/api/media/${existing.id}', bytes: bytes, filename: 'drawing.png', contentType: contentType);
+    return MediaItem.fromJson(res['media'] as Map<String, dynamic>);
   }
 
-  Future<void> delete(Moment m) async {
-    final paths = m.media.map((e) => e.storagePath).toList();
-    await _client.from('moments').delete().eq('id', m.id);
-    // Best effort: rows are gone, so a failure here only leaves orphan files.
-    try {
-      await _storage.remove(StorageRepository.mediaBucket, paths);
-    } catch (_) {}
-  }
+  Future<void> removeMedia(MediaItem m) => _api.delete('/api/media/${m.id}');
 
-  Future<void> deleteAll(String userId) async {
-    final paths = await _storage.listAllForUser(StorageRepository.mediaBucket, userId);
-    await _client.from('moments').delete().eq('user_id', userId);
-    await _storage.remove(StorageRepository.mediaBucket, paths);
-  }
+  Future<void> delete(Moment m) => _api.delete('/api/moments/${m.id}');
+
+  Future<void> deleteAll(String userId) => _api.delete('/api/moments');
 }

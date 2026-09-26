@@ -1,21 +1,14 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
-
+import '../../core/services/api_client.dart';
 import '../models/preferences.dart';
 
 class PreferencesRepository {
-  PreferencesRepository(this._client);
-  final SupabaseClient _client;
+  PreferencesRepository(this._api);
+  final ApiClient _api;
 
   Future<UserPreferences> fetch(String userId) async {
-    final row = await _client.from('user_preferences').select().eq('user_id', userId).maybeSingle();
-    if (row == null) {
-      // Trigger normally creates it; recover if it is missing.
-      final created = const UserPreferences();
-      await save(userId, created);
-      return created;
-    }
-    return UserPreferences.fromJson(row);
+    final res = await _api.get('/api/preferences');
+    return UserPreferences.fromJson(res['preferences'] as Map<String, dynamic>);
   }
 
-  Future<void> save(String userId, UserPreferences p) => _client.from('user_preferences').upsert(p.toJson(userId));
+  Future<void> save(String userId, UserPreferences p) => _api.put('/api/preferences', body: p.toJson());
 }

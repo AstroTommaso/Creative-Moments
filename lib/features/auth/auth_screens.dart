@@ -151,11 +151,8 @@ class _RegisterState extends ConsumerState<RegisterScreen> {
       _error = null;
     });
     try {
-      final signedIn = await ref.read(authRepoProvider).signUp(email: _email.text, password: _pw.text, name: _name.text);
-      if (!signedIn && mounted) {
-        showSnack(context, 'Check your email to confirm your account, then sign in.');
-        context.go('/login');
-      }
+      await ref.read(authRepoProvider).signUp(email: _email.text, password: _pw.text, name: _name.text);
+      // router redirect takes over on the auth state change
     } catch (e) {
       if (mounted) setState(() => _error = friendlyError(e));
     } finally {
@@ -266,63 +263,3 @@ class _ForgotState extends ConsumerState<ForgotPasswordScreen> {
   }
 }
 
-class ResetPasswordScreen extends ConsumerStatefulWidget {
-  const ResetPasswordScreen({super.key});
-  @override
-  ConsumerState<ResetPasswordScreen> createState() => _ResetState();
-}
-
-class _ResetState extends ConsumerState<ResetPasswordScreen> {
-  final _form = GlobalKey<FormState>();
-  final _pw = TextEditingController();
-  bool _busy = false;
-  String? _error;
-
-  @override
-  void dispose() {
-    _pw.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    if (!_form.currentState!.validate()) return;
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
-    try {
-      await ref.read(authRepoProvider).updatePassword(_pw.text);
-      ref.read(passwordRecoveryProvider.notifier).clear();
-      if (mounted) showSnack(context, 'Your password has been updated.');
-    } catch (e) {
-      if (mounted) setState(() => _error = friendlyError(e));
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AuthFrame(
-      showBack: false,
-      title: 'New password',
-      subtitle: 'Choose something you will remember.',
-      children: [
-        Form(
-          key: _form,
-          child: Field(
-            controller: _pw,
-            label: 'New password (8+ characters)',
-            obscure: true,
-            validator: validatePassword,
-            autofill: const [AutofillHints.newPassword],
-            action: TextInputAction.done,
-            onSubmitted: _submit,
-          ),
-        ),
-        InlineError(_error),
-        PrimaryButton(label: 'Save password', onPressed: _submit, loading: _busy),
-      ],
-    );
-  }
-}

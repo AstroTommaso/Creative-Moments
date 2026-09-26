@@ -3,7 +3,9 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore: ['backend/**']
   pull_request:
+    paths-ignore: ['backend/**']
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -24,23 +26,6 @@ jobs:
       - run: flutter analyze
       - run: flutter test
 
-  database:
-    name: Migrations & RLS
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_PASSWORD: postgres
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
-    steps:
-      - uses: actions/checkout@v4
-      - run: ./supabase/tests/run_rls.sh
-        env:
-          DB_URL: postgres://postgres:postgres@localhost:5432/postgres
-
   android:
     name: Android build
     runs-on: ubuntu-latest
@@ -58,7 +43,7 @@ jobs:
           cache: true
       - run: flutter pub get
       - name: "Build APK (placeholder config: the build must not need real secrets)"
-        run: flutter build apk --release --dart-define=SUPABASE_URL=https://example.supabase.co --dart-define=SUPABASE_ANON_KEY=ci-placeholder
+        run: flutter build apk --release --dart-define=API_BASE_URL=https://example.invalid
 
   ios:
     name: iOS build (no codesign)
@@ -72,4 +57,4 @@ jobs:
           flutter-version: 3.47.2
           cache: true
       - run: flutter pub get
-      - run: flutter build ios --release --no-codesign --dart-define=SUPABASE_URL=https://example.supabase.co --dart-define=SUPABASE_ANON_KEY=ci-placeholder
+      - run: flutter build ios --release --no-codesign --dart-define=API_BASE_URL=https://example.invalid

@@ -13,11 +13,11 @@ class Creation {
 
   factory Creation.fromJson(Map<String, dynamic> j) => Creation(
     id: j['id'] as String,
-    momentId: j['moment_id'] as String,
+    momentId: j['momentId'] as String,
     type: j['type'] as String,
-    textContent: j['text_content'] as String?,
-    drawing: j['drawing_data'] == null ? null : DrawingData.fromJson(Map<String, dynamic>.from(j['drawing_data'] as Map)),
-    createdAt: _dt(j['created_at']),
+    textContent: j['textContent'] as String?,
+    drawing: j['drawingData'] == null ? null : DrawingData.fromJson(Map<String, dynamic>.from(j['drawingData'] as Map)),
+    createdAt: _dt(j['createdAt']),
   );
 }
 
@@ -34,18 +34,24 @@ class PromptAnswer {
   final String id, question;
   final String? answer;
 
-  factory PromptAnswer.fromJson(Map<String, dynamic> j) {
-    final answers = (j['answers'] as List? ?? const []);
-    return PromptAnswer(id: j['id'] as String, question: j['question'] as String, answer: answers.isEmpty ? null : (answers.first as Map)['answer'] as String?);
-  }
+  factory PromptAnswer.fromJson(Map<String, dynamic> j) => PromptAnswer(id: j['id'] as String, question: j['question'] as String, answer: j['answer'] as String?);
   Map<String, dynamic> toJson() => {'id': id, 'question': question, 'answer': answer};
 }
 
 class MediaItem {
-  const MediaItem({required this.id, required this.momentId, required this.type, required this.storagePath});
+  const MediaItem({required this.id, required this.momentId, required this.type, required this.storagePath, this.url});
   final String id, momentId, type, storagePath;
-  factory MediaItem.fromJson(Map<String, dynamic> j) =>
-      MediaItem(id: j['id'] as String, momentId: j['moment_id'] as String, type: j['type'] as String, storagePath: j['storage_path'] as String);
+  /// Ready-to-use, short-lived signed URL, provided by the backend alongside
+  /// every media item — the app never resolves storage paths itself.
+  final String? url;
+
+  factory MediaItem.fromJson(Map<String, dynamic> j) => MediaItem(
+    id: j['id'] as String,
+    momentId: j['momentId'] as String,
+    type: j['type'] as String,
+    storagePath: j['storagePath'] as String,
+    url: j['url'] as String?,
+  );
 }
 
 class Moment {
@@ -82,31 +88,28 @@ class Moment {
   final List<PromptAnswer> prompts;
   final List<MediaItem> media;
 
-  static const select = '*, creations(*), inspirations(*), prompts(*, answers(*)), media(*)';
-
   factory Moment.fromJson(Map<String, dynamic> j) {
     List<T> list<T>(String k, T Function(Map<String, dynamic>) f) => [for (final e in (j[k] as List? ?? const [])) f(Map<String, dynamic>.from(e as Map))];
-    final prompts = list('prompts', PromptAnswer.fromJson);
     return Moment(
       id: j['id'] as String,
-      userId: j['user_id'] as String,
+      userId: j['userId'] as String,
       title: (j['title'] as String?) ?? '',
-      type: CreationType.parse(j['creation_type'] as String?),
+      type: CreationType.parse(j['creationType'] as String?),
       mood: j['mood'] as String?,
       atmosphere: j['atmosphere'] as String?,
-      timeOfDay: j['time_of_day'] as String?,
-      locationName: j['location_name'] as String?,
+      timeOfDay: j['timeOfDay'] as String?,
+      locationName: j['locationName'] as String?,
       latitude: _d(j['latitude']),
       longitude: _d(j['longitude']),
-      musicTitle: j['music_title'] as String?,
-      musicArtist: j['music_artist'] as String?,
-      musicAlbum: j['music_album'] as String?,
-      musicArtworkUrl: j['music_artwork_url'] as String?,
-      createdAt: _dt(j['created_at']),
-      updatedAt: _dt(j['updated_at']),
+      musicTitle: j['musicTitle'] as String?,
+      musicArtist: j['musicArtist'] as String?,
+      musicAlbum: j['musicAlbum'] as String?,
+      musicArtworkUrl: j['musicArtworkUrl'] as String?,
+      createdAt: _dt(j['createdAt']),
+      updatedAt: _dt(j['updatedAt']),
       creations: list('creations', Creation.fromJson),
       inspirations: list('inspirations', Inspiration.fromJson),
-      prompts: prompts,
+      prompts: list('prompts', PromptAnswer.fromJson),
       media: list('media', MediaItem.fromJson),
     );
   }

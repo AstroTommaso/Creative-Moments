@@ -49,7 +49,7 @@ class MomentArtwork extends StatelessWidget {
         ),
       );
     } else if (images.isNotEmpty) {
-      content = SizedBox.expand(child: SignedImage(path: images.first.storagePath, cacheWidth: 700));
+      content = SizedBox.expand(child: SignedImage(url: images.first.url, cacheWidth: 700));
     } else if (moment.excerpt.isNotEmpty) {
       content = Padding(
         padding: const EdgeInsets.all(Sp.lg),

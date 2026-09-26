@@ -447,7 +447,7 @@ class _MediaStrip extends ConsumerWidget {
                   ),
                 ),
               ),
-            for (final m in s.images) tile(SignedImage(path: m.storagePath, cacheWidth: 400), () => n.removeSavedImage(m), 'Remove photo'),
+            for (final m in s.images) tile(SignedImage(url: m.url, cacheWidth: 400), () => n.removeSavedImage(m), 'Remove photo'),
             for (final p in s.pendingImages) tile(Image.memory(p.bytes, fit: BoxFit.cover, cacheWidth: 400), () => n.removePendingImage(p.id), 'Remove photo'),
             GestureDetector(
               onTap: onAddPhoto,

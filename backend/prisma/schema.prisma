@@ -1,0 +1,177 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  passwordHash    String
+  displayName     String    @default("")
+  avatarUrl       String?
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  preferences UserPreferences?
+  moments     Moment[]
+  tags        Tag[]
+  sessions    Session[]
+  authTokens  AuthToken[]
+}
+
+/// A logged-in session. Its id IS the bearer token returned to the client.
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+/// A single-use token, currently only for password reset (1h expiry).
+model AuthToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model UserPreferences {
+  userId               String   @id
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  environments         String[] @default([])
+  environment          String   @default("moon")
+  atmosphere           String   @default("dreamy")
+  timeStyle            String   @default("auto")
+  visualDensity        String   @default("balanced")
+  preferredInspirations String[] @default([])
+  darkMode             Boolean  @default(true)
+  reduceMotion         Boolean  @default(false)
+  locationEnabled      Boolean  @default(false)
+  weatherEnabled       Boolean  @default(false)
+  onboarded            Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model Moment {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title            String   @default("")
+  creationType     String   @default("freeform")
+  mood             String?
+  atmosphere       String?
+  timeOfDay        String?
+  locationName     String?
+  latitude         Float?
+  longitude        Float?
+  musicTitle       String?
+  musicArtist      String?
+  musicAlbum       String?
+  musicArtworkUrl  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  creations    Creation[]
+  inspirations Inspiration[]
+  prompts      Prompt[]
+  media        Media[]
+  tags         MomentTag[]
+
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model Creation {
+  id           String   @id @default(cuid())
+  momentId     String
+  moment       Moment   @relation(fields: [momentId], references: [id], onDelete: Cascade)
+  type         String
+  textContent  String?
+  drawingData  Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([momentId])
+}
+
+model Inspiration {
+  id        String   @id @default(cuid())
+  momentId  String
+  moment    Moment   @relation(fields: [momentId], references: [id], onDelete: Cascade)
+  type      String
+  name      String
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  @@unique([momentId, type, name])
+  @@index([momentId])
+}
+
+model Prompt {
+  id        String   @id @default(cuid())
+  momentId  String
+  moment    Moment   @relation(fields: [momentId], references: [id], onDelete: Cascade)
+  question  String
+  createdAt DateTime @default(now())
+
+  answers Answer[]
+
+  @@index([momentId])
+}
+
+model Answer {
+  id        String   @id @default(cuid())
+  promptId  String
+  prompt    Prompt   @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  answer    String
+  createdAt DateTime @default(now())
+
+  @@index([promptId])
+}
+
+model Media {
+  id          String   @id @default(cuid())
+  momentId    String
+  moment      Moment   @relation(fields: [momentId], references: [id], onDelete: Cascade)
+  type        String
+  storagePath String
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now())
+
+  @@index([momentId])
+}
+
+/// Not referenced by the Flutter app yet; kept for parity with the schema
+/// this replaces, in case tagging is wired up later.
+model Tag {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name   String
+
+  moments MomentTag[]
+
+  @@unique([userId, name])
+}
+
+model MomentTag {
+  momentId String
+  moment   Moment @relation(fields: [momentId], references: [id], onDelete: Cascade)
+  tagId    String
+  tag      Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([momentId, tagId])
+}

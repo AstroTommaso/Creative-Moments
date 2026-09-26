@@ -264,7 +264,7 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
                               borderRadius: BorderRadius.circular(Rd.md),
                               child: AspectRatio(
                                 aspectRatio: 4 / 3,
-                                child: SignedImage(path: img.storagePath, cacheWidth: 1200),
+                                child: SignedImage(url: img.url, cacheWidth: 1200),
                               ),
                             ),
                           ),

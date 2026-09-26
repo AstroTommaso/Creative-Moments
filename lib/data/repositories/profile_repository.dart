@@ -1,31 +1,23 @@
 import 'dart:typed_data';
 
-import 'package:supabase_flutter/supabase_flutter.dart';
-
+import '../../core/services/api_client.dart';
 import '../models/preferences.dart';
-import 'storage_repository.dart';
 
 class ProfileRepository {
-  ProfileRepository(this._client, this._storage);
-  final SupabaseClient _client;
-  final StorageRepository _storage;
+  ProfileRepository(this._api);
+  final ApiClient _api;
 
   Future<Profile> fetch(String userId) async {
-    final row = await _client.from('profiles').select().eq('id', userId).maybeSingle();
-    if (row == null) {
-      await _client.from('profiles').upsert({'id': userId});
-      return Profile(id: userId);
-    }
-    return Profile.fromJson(row);
+    final res = await _api.get('/api/profile');
+    return Profile.fromJson(res['profile'] as Map<String, dynamic>);
   }
 
-  Future<void> updateName(String userId, String name) => _client.from('profiles').update({'display_name': name.trim()}).eq('id', userId);
+  Future<void> updateName(String userId, String name) => _api.put('/api/profile', body: {'displayName': name.trim()});
 
+  /// Returns the new signed avatar URL.
   Future<String> uploadAvatar(String userId, Uint8List bytes, String contentType) async {
     final ext = contentType.contains('png') ? 'png' : 'jpg';
-    final path = '$userId/avatar/avatar.$ext';
-    await _storage.upload(StorageRepository.avatarBucket, path, bytes, contentType: contentType, upsert: true);
-    await _client.from('profiles').update({'avatar_url': path}).eq('id', userId);
-    return path;
+    final res = await _api.upload('POST', '/api/profile/avatar', bytes: bytes, filename: 'avatar.$ext', contentType: contentType);
+    return res['avatarUrl'] as String;
   }
 }

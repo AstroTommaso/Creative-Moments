@@ -6,38 +6,32 @@ import 'package:flutter_test/flutter_test.dart';
 
 Map<String, dynamic> momentJson({Map<String, dynamic>? extra}) => {
   'id': 'm1',
-  'user_id': 'u1',
+  'userId': 'u1',
   'title': 'Tonight',
-  'creation_type': 'writing',
+  'creationType': 'writing',
   'mood': 'peaceful',
   'atmosphere': 'dreamy',
-  'time_of_day': 'night',
-  'location_name': 'Italy',
+  'timeOfDay': 'night',
+  'locationName': 'Italy',
   'latitude': 45.4,
   'longitude': 9.19,
-  'music_title': 'Nuvole Bianche',
-  'music_artist': 'Einaudi',
-  'created_at': '2026-09-25T21:40:00Z',
-  'updated_at': '2026-09-25T21:41:00Z',
+  'musicTitle': 'Nuvole Bianche',
+  'musicArtist': 'Einaudi',
+  'createdAt': '2026-09-25T21:40:00Z',
+  'updatedAt': '2026-09-25T21:41:00Z',
   'creations': [
-    {'id': 'c1', 'moment_id': 'm1', 'type': 'text', 'text_content': 'Hello\nworld', 'drawing_data': null, 'created_at': '2026-09-25T21:40:00Z'},
+    {'id': 'c1', 'momentId': 'm1', 'type': 'text', 'textContent': 'Hello\nworld', 'drawingData': null, 'createdAt': '2026-09-25T21:40:00Z'},
   ],
   'inspirations': [
     {'type': 'moon', 'name': 'Moon'},
     {'type': 'city', 'name': 'City'},
   ],
   'prompts': [
-    {
-      'id': 'p1',
-      'question': 'Q?',
-      'answers': [
-        {'answer': 'A.'},
-      ],
-    },
-    {'id': 'p2', 'question': 'Skipped?', 'answers': []},
+    {'id': 'p1', 'question': 'Q?', 'answer': 'A.'},
+    {'id': 'p2', 'question': 'Skipped?', 'answer': null},
   ],
   'media': [
-    {'id': 'x1', 'moment_id': 'm1', 'type': 'image', 'storage_path': 'u1/m1/a.jpg'},
+    {'id': 'x1', 'momentId': 'm1', 'type': 'image', 'storagePath': 'u1/m1/a.jpg', 'url': 'https://example.test/a.jpg'},
   ],
   ...?extra,
 };
@@ -52,6 +46,7 @@ void main() {
       expect(m.prompts.first.answer, 'A.');
       expect(m.prompts.last.answer, isNull);
       expect(m.images.single.storagePath, 'u1/m1/a.jpg');
+      expect(m.images.single.url, 'https://example.test/a.jpg');
       expect(m.hasMusic, isTrue);
       expect(m.hasLocation, isTrue);
       expect(m.latitude, 45.4);
@@ -61,10 +56,10 @@ void main() {
     test('tolerates missing optional parts and unknown type', () {
       final m = Moment.fromJson({
         'id': 'm',
-        'user_id': 'u',
-        'creation_type': 'mystery',
-        'created_at': '2026-01-01T00:00:00Z',
-        'updated_at': '2026-01-01T00:00:00Z',
+        'userId': 'u',
+        'creationType': 'mystery',
+        'createdAt': '2026-01-01T00:00:00Z',
+        'updatedAt': '2026-01-01T00:00:00Z',
       });
       expect(m.type, CreationType.freeform);
       expect(m.creations, isEmpty);
@@ -81,7 +76,7 @@ void main() {
           extra: {
             'title': '',
             'creations': [
-              {'id': 'c', 'moment_id': 'm1', 'type': 'text', 'text_content': 'x' * 100, 'created_at': '2026-09-25T21:40:00Z'},
+              {'id': 'c', 'momentId': 'm1', 'type': 'text', 'textContent': 'x' * 100, 'createdAt': '2026-09-25T21:40:00Z'},
             ],
           },
         ),
@@ -94,7 +89,7 @@ void main() {
         momentJson(
           extra: {
             'creations': [
-              {'id': 'c', 'moment_id': 'm1', 'type': 'text', 'text_content': 'a\n\n  b ${'z' * 200}', 'created_at': '2026-09-25T21:40:00Z'},
+              {'id': 'c', 'momentId': 'm1', 'type': 'text', 'textContent': 'a\n\n  b ${'z' * 200}', 'createdAt': '2026-09-25T21:40:00Z'},
             ],
           },
         ),
@@ -148,8 +143,8 @@ void main() {
         reduceMotion: true,
         onboarded: true,
       );
-      final json = p.toJson('u1');
-      expect(json['user_id'], 'u1');
+      final json = p.toJson();
+      expect(json['environment'], 'ocean');
       final back = UserPreferences.fromJson(json);
       expect(back.environments, ['ocean', 'moon']);
       expect(back.timeStyle, 'night');

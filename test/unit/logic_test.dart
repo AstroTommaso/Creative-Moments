@@ -2,6 +2,7 @@ import 'package:creative_moments/core/animations/sky.dart';
 import 'package:creative_moments/core/constants/catalog.dart';
 import 'package:creative_moments/core/errors/app_error.dart';
 import 'package:creative_moments/core/routing/router.dart';
+import 'package:creative_moments/core/services/api_client.dart';
 import 'package:creative_moments/core/services/weather_service.dart';
 import 'package:creative_moments/data/insights.dart';
 import 'package:creative_moments/data/models/moment.dart';
@@ -11,7 +12,6 @@ import 'package:creative_moments/features/world/constellation_layout.dart';
 import 'package:creative_moments/data/providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 Moment mk(
   String id, {
@@ -166,8 +166,8 @@ void main() {
   });
 
   group('routing rules', () {
-    String? r({String loc = '/home', bool signedIn = true, bool recovery = false, bool loading = false, bool error = false, bool onboarded = true}) =>
-        redirectFor(location: loc, signedIn: signedIn, recovery: recovery, prefsLoading: loading, prefsError: error, onboarded: onboarded);
+    String? r({String loc = '/home', bool signedIn = true, bool loading = false, bool error = false, bool onboarded = true}) =>
+        redirectFor(location: loc, signedIn: signedIn, prefsLoading: loading, prefsError: error, onboarded: onboarded);
 
     test('signed-out users only see auth routes', () {
       expect(r(signedIn: false), '/welcome');
@@ -189,33 +189,23 @@ void main() {
       expect(r(loc: '/splash'), '/home');
       expect(r(loc: '/moments'), isNull);
     });
-
-    test('password recovery takes over until finished', () {
-      expect(r(recovery: true), '/reset-password');
-      expect(r(recovery: true, loc: '/reset-password'), isNull);
-      expect(r(loc: '/reset-password'), '/home');
-    });
   });
 
   group('errors', () {
     test('never leak technical text', () {
-      for (final e in [
-        Exception('boom: stack trace'),
-        const PostgrestException(message: 'duplicate key value violates unique constraint "x"', code: '23505'),
-        StateError('bad'),
-      ]) {
+      for (final e in [Exception('boom: stack trace'), const ApiException(500, 'internal_error'), StateError('bad')]) {
         final m = friendlyError(e);
         expect(m.contains('Exception'), isFalse);
-        expect(m.contains('constraint'), isFalse);
+        expect(m.contains('internal_error'), isFalse);
         expect(m.contains('StateError'), isFalse);
       }
     });
 
     test('auth and network errors get specific, friendly copy', () {
-      expect(friendlyError(const AuthException('Invalid login credentials')), contains('do not match'));
-      expect(friendlyError(const AuthException('User already registered')), contains('already exists'));
+      expect(friendlyError(const ApiException(401, 'invalid_credentials')), contains('do not match'));
+      expect(friendlyError(const ApiException(409, 'email_already_registered')), contains('already exists'));
       expect(AppError.from(Exception('SocketException: Failed host lookup')).isNetwork, isTrue);
-      expect(friendlyError(const PostgrestException(message: 'x', code: '42501')), contains('access'));
+      expect(friendlyError(const ApiException(404, 'moment_not_found')), contains('found'));
     });
   });
 

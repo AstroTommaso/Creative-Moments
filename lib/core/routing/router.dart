@@ -25,16 +25,14 @@ const _authRoutes = {'/welcome', '/login', '/register', '/forgot'};
 String? redirectFor({
   required String location,
   required bool signedIn,
-  required bool recovery,
   required bool prefsLoading,
   required bool prefsError,
   required bool onboarded,
 }) {
-  if (signedIn && recovery) return location == '/reset-password' ? null : '/reset-password';
   if (!signedIn) return _authRoutes.contains(location) ? null : '/welcome';
   if (prefsLoading || prefsError) return location == '/splash' ? null : '/splash';
   if (!onboarded) return location == '/onboarding' ? null : '/onboarding';
-  if (location == '/splash' || location == '/' || _authRoutes.contains(location) || location == '/onboarding' || location == '/reset-password') return '/home';
+  if (location == '/splash' || location == '/' || _authRoutes.contains(location) || location == '/onboarding') return '/home';
   return null;
 }
 
@@ -42,7 +40,6 @@ final routerProvider = Provider<GoRouter>((ref) {
   final refresh = ValueNotifier<int>(0);
   ref.listen(sessionUserProvider, (_, _) => refresh.value++);
   ref.listen(preferencesProvider, (_, _) => refresh.value++);
-  ref.listen(passwordRecoveryProvider, (_, _) => refresh.value++);
   ref.onDispose(refresh.dispose);
 
   final rootKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -57,7 +54,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       return redirectFor(
         location: state.matchedLocation,
         signedIn: ref.read(sessionUserProvider) != null,
-        recovery: ref.read(passwordRecoveryProvider),
         prefsLoading: !prefs.hasValue && !prefs.hasError,
         prefsError: prefs.hasError && !prefs.hasValue,
         onboarded: prefs.value?.onboarded ?? false,
@@ -70,7 +66,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
       GoRoute(path: '/forgot', builder: (_, _) => const ForgotPasswordScreen()),
-      GoRoute(path: '/reset-password', builder: (_, _) => const ResetPasswordScreen()),
       GoRoute(path: '/onboarding', builder: (_, _) => const OnboardingScreen()),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => AppShell(shell: shell),

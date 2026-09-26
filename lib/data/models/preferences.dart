@@ -50,29 +50,28 @@ class UserPreferences {
       environments: strs(j['environments']),
       environment: (j['environment'] as String?) ?? d.environment,
       atmosphere: (j['atmosphere'] as String?) ?? d.atmosphere,
-      timeStyle: (j['time_style'] as String?) ?? d.timeStyle,
-      visualDensity: (j['visual_density'] as String?) ?? d.visualDensity,
-      preferredInspirations: strs(j['preferred_inspirations']),
-      darkMode: (j['dark_mode'] as bool?) ?? true,
-      reduceMotion: (j['reduce_motion'] as bool?) ?? false,
-      locationEnabled: (j['location_enabled'] as bool?) ?? false,
-      weatherEnabled: (j['weather_enabled'] as bool?) ?? false,
+      timeStyle: (j['timeStyle'] as String?) ?? d.timeStyle,
+      visualDensity: (j['visualDensity'] as String?) ?? d.visualDensity,
+      preferredInspirations: strs(j['preferredInspirations']),
+      darkMode: (j['darkMode'] as bool?) ?? true,
+      reduceMotion: (j['reduceMotion'] as bool?) ?? false,
+      locationEnabled: (j['locationEnabled'] as bool?) ?? false,
+      weatherEnabled: (j['weatherEnabled'] as bool?) ?? false,
       onboarded: (j['onboarded'] as bool?) ?? false,
     );
   }
 
-  Map<String, dynamic> toJson(String userId) => {
-    'user_id': userId,
+  Map<String, dynamic> toJson() => {
     'environments': environments,
     'environment': environment,
     'atmosphere': atmosphere,
-    'time_style': timeStyle,
-    'visual_density': visualDensity,
-    'preferred_inspirations': preferredInspirations,
-    'dark_mode': darkMode,
-    'reduce_motion': reduceMotion,
-    'location_enabled': locationEnabled,
-    'weather_enabled': weatherEnabled,
+    'timeStyle': timeStyle,
+    'visualDensity': visualDensity,
+    'preferredInspirations': preferredInspirations,
+    'darkMode': darkMode,
+    'reduceMotion': reduceMotion,
+    'locationEnabled': locationEnabled,
+    'weatherEnabled': weatherEnabled,
     'onboarded': onboarded,
   };
 
@@ -83,7 +82,8 @@ class UserPreferences {
 class Profile {
   const Profile({required this.id, this.displayName = '', this.avatarUrl});
   final String id, displayName;
-  final String? avatarUrl; // storage path in the avatars bucket
+  /// Ready-to-use, short-lived signed URL (or null), not a storage path.
+  final String? avatarUrl;
   factory Profile.fromJson(Map<String, dynamic> j) =>
-      Profile(id: j['id'] as String, displayName: (j['display_name'] as String?) ?? '', avatarUrl: j['avatar_url'] as String?);
+      Profile(id: j['id'] as String, displayName: (j['displayName'] as String?) ?? '', avatarUrl: j['avatarUrl'] as String?);
 }

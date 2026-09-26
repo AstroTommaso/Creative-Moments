@@ -8,7 +8,6 @@ import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
 import '../../data/models/preferences.dart';
 import '../../data/providers.dart';
-import '../../data/repositories/storage_repository.dart';
 import '../../shared/widgets/ui.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -118,12 +117,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (ok != true) return;
     setState(() => _busy = true);
     try {
-      final user = ref.read(sessionUserProvider)!;
-      final storage = ref.read(storageRepoProvider);
-      // Storage objects can only be removed through the Storage API, so do it
-      // before the account row disappears.
-      await ref.read(momentRepoProvider).deleteAll(user.id);
-      await storage.remove(StorageRepository.avatarBucket, await storage.listAllForUser(StorageRepository.avatarBucket, user.id));
+      // The backend deletes storage files and every row atomically.
       await ref.read(authRepoProvider).deleteAccountRow();
       try {
         await ref.read(authRepoProvider).signOut();

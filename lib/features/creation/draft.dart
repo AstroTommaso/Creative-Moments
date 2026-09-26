@@ -12,7 +12,6 @@ import '../../data/models/drawing.dart';
 import '../../data/models/moment.dart';
 import '../../data/providers.dart';
 import '../../data/repositories/moment_repository.dart';
-import '../../data/repositories/storage_repository.dart';
 
 enum SaveStatus { idle, dirty, saving, saved, error }
 
@@ -145,9 +144,9 @@ class DraftState {
 const _keep = Object();
 const _uuid = Uuid();
 
-/// In-memory working copy of the moment being created or edited. Supabase is
-/// the source of truth: this state is synced by debounced autosave, and the UI
-/// only ever says "Saved" once the server confirmed it.
+/// In-memory working copy of the moment being created or edited. The backend
+/// is the source of truth: this state is synced by debounced autosave, and
+/// the UI only ever says "Saved" once the server confirmed it.
 class DraftNotifier extends Notifier<DraftState> {
   Timer? _debounce, _retry;
   int _rev = 0;
@@ -391,7 +390,8 @@ class DraftNotifier extends Notifier<DraftState> {
         if (s.hasDrawing && (_drawingPngStale || s.drawingMedia == null)) {
           final png = await renderDrawingPng(s.drawing!);
           if (s.drawingMedia != null) {
-            await ref.read(storageRepoProvider).upload(StorageRepository.mediaBucket, s.drawingMedia!.storagePath, png, contentType: 'image/png', upsert: true);
+            final updated = await repo.replaceMedia(s.drawingMedia!, png, contentType: 'image/png');
+            state = state.copyWith(drawingMedia: updated);
           } else {
             final m = await repo.addMedia(
               userId: user.id,

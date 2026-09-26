@@ -9,7 +9,6 @@ import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
 import '../../data/insights.dart';
 import '../../data/providers.dart';
-import '../../data/repositories/storage_repository.dart';
 import '../../shared/widgets/signed_image.dart';
 import '../../shared/widgets/ui.dart';
 
@@ -149,7 +148,7 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: avatar != null && avatar.isNotEmpty
-                        ? SignedImage(path: avatar, bucket: StorageRepository.avatarBucket, cacheWidth: 300)
+                        ? SignedImage(url: avatar, cacheWidth: 300)
                         : Center(
                             child: Text(name.isEmpty ? '✦' : name.characters.first.toUpperCase(), style: AppType.display(48, color: c.accent)),
                           ),

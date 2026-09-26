@@ -1,17 +1,18 @@
 // DEVELOPMENT / TEST ONLY.
 //
-// An in-memory stand-in for the Supabase repositories so the UI can be run and
-// tested without a project. Nothing in the production entrypoint (main.dart)
-// imports this file. It is deliberately NOT a persistent store.
+// An in-memory stand-in for the backend repositories so the UI can be run and
+// tested without a real server. Nothing in the production entrypoint
+// (main.dart) imports this file. It is deliberately NOT a persistent store.
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' show Offset;
 
 import 'package:flutter_riverpod/misc.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../core/constants/catalog.dart';
+import '../core/services/api_client.dart';
+import '../data/models/app_user.dart';
 import '../data/models/drawing.dart';
 import '../data/models/moment.dart';
 import '../data/models/preferences.dart';
@@ -20,7 +21,6 @@ import '../data/repositories/auth_repository.dart';
 import '../data/repositories/moment_repository.dart';
 import '../data/repositories/preferences_repository.dart';
 import '../data/repositories/profile_repository.dart';
-import '../data/repositories/storage_repository.dart';
 
 const _uuid = Uuid();
 
@@ -31,23 +31,16 @@ class FakeBackend {
   final profiles = <String, Profile>{};
   final moments = <String, Moment>{}; // by id
   final files = <String, Uint8List>{};
-  final auth = StreamController<AuthState>.broadcast();
+  final auth = StreamController<AppAuthChange>.broadcast();
 
   /// When true every write throws, to exercise offline / error handling.
   bool offline = false;
 
-  User? get currentUser {
+  AppUser? get currentUser {
     final e = currentEmail;
     if (e == null) return null;
     final u = users[e]!;
-    return User(
-      id: u.id,
-      appMetadata: const {},
-      userMetadata: {'display_name': u.name},
-      aud: 'authenticated',
-      createdAt: DateTime.now().toIso8601String(),
-      email: e,
-    );
+    return AppUser(id: u.id, email: e, displayName: u.name, avatarUrl: profiles[u.id]?.avatarUrl);
   }
 
   void _check() {
@@ -58,7 +51,6 @@ class FakeBackend {
     authRepoProvider.overrideWithValue(FakeAuthRepository(this)),
     prefsRepoProvider.overrideWithValue(FakePreferencesRepository(this)),
     profileRepoProvider.overrideWithValue(FakeProfileRepository(this)),
-    storageRepoProvider.overrideWithValue(FakeStorageRepository(this)),
     momentRepoProvider.overrideWithValue(FakeMomentRepository(this)),
   ];
 
@@ -190,44 +182,43 @@ class FakeAuthRepository implements AuthRepository {
   final FakeBackend b;
 
   @override
-  User? get currentUser => b.currentUser;
+  AppUser? get currentUser => b.currentUser;
 
   @override
-  Stream<AuthState> get changes => b.auth.stream;
+  Stream<AppAuthChange> get changes => b.auth.stream;
 
   @override
-  Future<bool> signUp({required String email, required String password, required String name}) async {
+  Future<void> restoreSession() async {} // main_dev.dart signs in directly
+
+  @override
+  Future<void> signUp({required String email, required String password, required String name}) async {
     b._check();
-    if (b.users.containsKey(email.trim())) throw const AuthException('User already registered');
+    if (b.users.containsKey(email.trim())) throw ApiException(409, 'email_already_registered');
     final id = _uuid.v4();
     b.users[email.trim()] = (id: id, password: password, name: name.trim());
     b.profiles[id] = Profile(id: id, displayName: name.trim());
     b.prefs[id] = const UserPreferences();
     b.currentEmail = email.trim();
-    b.auth.add(AuthState(AuthChangeEvent.signedIn, null));
-    return true;
+    b.auth.add(const AppAuthChange(AppAuthEvent.signedIn));
   }
 
   @override
   Future<void> signIn({required String email, required String password}) async {
     b._check();
     final u = b.users[email.trim()];
-    if (u == null || u.password != password) throw const AuthException('Invalid login credentials');
+    if (u == null || u.password != password) throw const ApiException(401, 'invalid_credentials');
     b.currentEmail = email.trim();
-    b.auth.add(AuthState(AuthChangeEvent.signedIn, null));
+    b.auth.add(const AppAuthChange(AppAuthEvent.signedIn));
   }
 
   @override
   Future<void> signOut() async {
     b.currentEmail = null;
-    b.auth.add(AuthState(AuthChangeEvent.signedOut, null));
+    b.auth.add(const AppAuthChange(AppAuthEvent.signedOut));
   }
 
   @override
   Future<void> sendPasswordReset(String email) async => b._check();
-
-  @override
-  Future<void> updatePassword(String password) async => b._check();
 
   @override
   Future<void> deleteAccountRow() async {
@@ -275,33 +266,10 @@ class FakeProfileRepository implements ProfileRepository {
     b._check();
     final path = '$userId/avatar/avatar.png';
     b.files[path] = bytes;
-    b.profiles[userId] = Profile(id: userId, displayName: b.profiles[userId]?.displayName ?? '', avatarUrl: path);
-    return path;
+    final url = 'about:blank#$path';
+    b.profiles[userId] = Profile(id: userId, displayName: b.profiles[userId]?.displayName ?? '', avatarUrl: url);
+    return url;
   }
-}
-
-class FakeStorageRepository implements StorageRepository {
-  FakeStorageRepository(this.b);
-  final FakeBackend b;
-
-  @override
-  Future<String> signedUrl(String bucket, String path) async => 'about:blank#$path';
-
-  @override
-  Future<void> upload(String bucket, String path, Uint8List bytes, {required String contentType, bool upsert = false}) async {
-    b._check();
-    b.files[path] = bytes;
-  }
-
-  @override
-  Future<void> remove(String bucket, List<String> paths) async {
-    for (final p in paths) {
-      b.files.remove(p);
-    }
-  }
-
-  @override
-  Future<List<String>> listAllForUser(String bucket, String userId) async => b.files.keys.where((k) => k.startsWith('$userId/')).toList();
 }
 
 class FakeMomentRepository implements MomentRepository {
@@ -397,7 +365,7 @@ class FakeMomentRepository implements MomentRepository {
     b._check();
     final path = '$userId/$momentId/${fileName ?? '${DateTime.now().microsecondsSinceEpoch}.$ext'}';
     b.files[path] = bytes;
-    final item = MediaItem(id: _uuid.v4(), momentId: momentId, type: type, storagePath: path);
+    final item = MediaItem(id: _uuid.v4(), momentId: momentId, type: type, storagePath: path, url: 'about:blank#$path');
     final m = b.moments[momentId]!;
     b.moments[momentId] = Moment(
       id: m.id,
@@ -422,6 +390,13 @@ class FakeMomentRepository implements MomentRepository {
       media: [...m.media, item],
     );
     return item;
+  }
+
+  @override
+  Future<MediaItem> replaceMedia(MediaItem existing, Uint8List bytes, {required String contentType}) async {
+    b._check();
+    b.files[existing.storagePath] = bytes;
+    return existing;
   }
 
   @override
