@@ -1,0 +1,86 @@
+/// Predefined creative prompts. No AI: each question declares the contexts it
+/// suits, and the selector scores them against the current moment.
+class Question {
+  const Question(this.id, this.text, {this.types = const {}, this.inspirations = const {}, this.moods = const {}, this.times = const {}, this.envs = const {}});
+  final String id, text;
+  final Set<String> types, inspirations, moods, times, envs;
+}
+
+const questionLibrary = <Question>[
+  // ── generic ──
+  Question('g1', 'What made you want to create something right now?'),
+  Question('g2', 'If this moment had a color, which one would it be?'),
+  Question('g3', 'What would you like to remember about today?'),
+  Question('g4', 'Who, if anyone, is this for?'),
+  Question('g5', 'What were you feeling just before you started?'),
+  Question('g6', 'If this creation could speak, what would it say first?'),
+  Question('g7', 'What is one thing you left out on purpose?'),
+  Question('g8', 'What would you change about this if nobody would ever see it?'),
+  Question('g9', 'Where does this creation belong?'),
+  Question('g10', 'What sound would this moment make?'),
+  Question('g11', 'What did you notice today that you almost missed?'),
+  Question('g12', 'What was the hardest part of making this?'),
+  // ── type ──
+  Question('w1', 'Which line surprised you while writing?', types: {'writing', 'story', 'letter'}),
+  Question('w2', 'What did you want to say but could not find the words for?', types: {'writing', 'letter'}),
+  Question('w3', 'If this text were a place, what would it look like?', types: {'writing', 'story'}),
+  Question('s1', 'Who is the character you keep thinking about?', types: {'story'}),
+  Question('s2', 'What happens the moment after your story ends?', types: {'story'}),
+  Question('l1', 'What would you add to this letter if you knew it would be read years from now?', types: {'letter'}),
+  Question('l2', 'Will you send it, keep it, or let it go?', types: {'letter'}),
+  Question('d1', 'Where did your hand want to go first?', types: {'drawing'}),
+  Question('d2', 'What is the quietest part of this drawing?', types: {'drawing'}),
+  Question('d3', 'If you kept drawing for an hour, what would appear?', types: {'drawing'}),
+  Question('p1', 'What made you stop and take this picture?', types: {'photo'}),
+  Question('p2', 'What is just outside the frame?', types: {'photo'}),
+  Question('i1', 'Where might this idea grow next?', types: {'idea'}),
+  Question('i2', 'What is the smallest first step for this idea?', types: {'idea'}),
+  Question('f1', 'Which part of this feels most like you?', types: {'freeform'}),
+  // ── inspiration ──
+  Question('m1', 'If this drawing existed somewhere in the universe, where would it be?', types: {'drawing'}, inspirations: {'moon'}),
+  Question('m2', 'What does the moon know that you are still learning?', inspirations: {'moon'}),
+  Question('m3', 'What do you wish the moon could carry for you tonight?', inspirations: {'moon'}, times: {'night'}),
+  Question('r1', 'Is the rain part of what you are trying to say?', types: {'writing', 'story', 'letter'}, inspirations: {'rain'}),
+  Question('r2', 'What does the sound of rain remind you of?', inspirations: {'rain'}),
+  Question('r3', 'Would this moment feel different without the rain?', inspirations: {'rain'}),
+  Question('o1', 'What does the sea say when you are not listening?', inspirations: {'ocean'}),
+  Question('o2', 'Are you the wave or the shore right now?', inspirations: {'ocean'}),
+  Question('st1', 'Which star would you visit if you could?', inspirations: {'stars'}),
+  Question('st2', 'How small or how large do you feel under the sky?', inspirations: {'stars'}, times: {'night'}),
+  Question('fl1', 'What would this flower say if it had a voice?', inspirations: {'flowers'}),
+  Question('fl2', 'What is blooming in you right now?', inspirations: {'flowers'}),
+  Question('n1', 'What part of nature influenced this?', types: {'drawing'}, inspirations: {'nature'}),
+  Question('n2', 'What did the outdoors give you today?', inspirations: {'nature'}),
+  Question('de1', 'What does emptiness feel like in this place?', inspirations: {'desert'}),
+  Question('c1', 'Which window of the city are you looking through?', inspirations: {'city'}),
+  Question('c2', 'What is the city doing while you create?', inspirations: {'city'}, times: {'night'}),
+  Question('mu1', 'Is the music changing the rhythm of your writing?', types: {'writing', 'story', 'letter'}, inspirations: {'music'}),
+  Question('mu2', 'If this song were a color, what would it be?', inspirations: {'music'}),
+  Question('mu3', 'Which moment in the song did you draw or write to?', inspirations: {'music'}),
+  Question('se1', 'What did you see that you cannot stop thinking about?', inspirations: {'seen'}),
+  Question('me1', 'Which memory keeps returning, and why now?', inspirations: {'memory'}),
+  Question('me2', 'What would you tell the person you were in that memory?', inspirations: {'memory'}),
+  Question('fe1', 'Where in your body do you feel this?', inspirations: {'feeling'}),
+  Question('pe1', 'What would you like them to understand?', inspirations: {'person'}),
+  Question('pe2', 'What is one thing about them you never want to forget?', inspirations: {'person'}),
+  Question('pl1', 'What does this place smell like?', inspirations: {'place'}),
+  Question('pl2', 'Who else belongs in this place?', inspirations: {'place'}),
+  // ── mood ──
+  Question('mo1', 'What would make this feeling a little softer?', moods: {'melancholic', 'lonely', 'confused'}),
+  Question('mo2', 'Is this loneliness quiet or heavy?', moods: {'lonely'}),
+  Question('mo3', 'What do you want to hold on to from this feeling?', moods: {'happy', 'peaceful', 'inspired'}),
+  Question('mo4', 'What is the first word that comes to mind for tonight?', moods: {'dreamy', 'calm', 'peaceful'}),
+  Question('mo5', 'What are you missing, and is it a person, a place or a time?', moods: {'nostalgic'}),
+  Question('mo6', 'What would you say to someone who loves you right now?', moods: {'romantic'}),
+  Question('mo7', 'Where does all this energy want to go?', moods: {'energetic', 'inspired'}),
+  Question('mo8', 'If this confusion had a shape, what would it be?', moods: {'confused'}),
+  // ── time ──
+  Question('t1', 'Why did you feel like creating tonight?', times: {'night'}),
+  Question('t2', 'What does the quiet of the night let you hear?', times: {'night'}),
+  Question('t3', 'How is the morning light changing what you make?', times: {'dawn'}),
+  Question('t4', 'What is your day leaving behind?', times: {'sunset'}),
+  Question('t5', 'What would you make if the day were slower?', times: {'day'}),
+  // ── environment ──
+  Question('e1', 'Does your world tonight feel more like the sea or the sky?', envs: {'ocean', 'stars', 'moon'}),
+  Question('e2', 'If your Home were a place you could walk into, what would you do first?', envs: {'moon', 'forest', 'nature', 'ocean', 'desert', 'city'}),
+];
