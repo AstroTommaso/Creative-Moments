@@ -101,7 +101,10 @@ class _EnvironmentSceneState extends ConsumerState<EnvironmentScene> with Single
     final active = widget.overrideEnvironments ?? prefs.activeEnvironments;
     final target = <String, double>{};
     for (var i = 0; i < active.length; i++) {
-      target[active[i]] = i == 0 ? 1.0 : 0.72;
+      // A historical scene infers its environment from a single moment's
+      // inspirations — a much weaker signal than Home's deliberately chosen,
+      // curated mix — so it never renders at the same full strength.
+      target[active[i]] = i == 0 ? (historical ? 0.55 : 1.0) : 0.72;
     }
     if (!historical) {
       // Home slowly evolves with what the user makes.
