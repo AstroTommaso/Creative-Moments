@@ -419,5 +419,6 @@
   "momentFallbackUntitled": "Momento senza titolo",
   "homeContinueCreatingHeader": "Continua a creare",
   "homeContinueMomentSemanticLabel": "Continua {title}",
-  "momentDetailRelatedHeader": "Questo mi ricorda"
+  "momentDetailRelatedHeader": "Questo mi ricorda",
+  "profileSectionMusic": "Musica a cui torni"
 }

@@ -26,6 +26,8 @@ Moment mk(
   String? place,
   String? atmosphere,
   bool draft = false,
+  String? song,
+  String? artist,
 }) {
   final t = at ?? DateTime(2026, 9, 1, 22);
   return Moment(
@@ -37,6 +39,8 @@ Moment mk(
     atmosphere: atmosphere,
     timeOfDay: tod,
     locationName: place,
+    musicTitle: song,
+    musicArtist: artist,
     createdAt: t,
     updatedAt: t,
     finishedAt: draft ? null : t,
@@ -96,8 +100,8 @@ void main() {
   group('insights', () {
     test('rank recurring inspirations, moods, places and types', () {
       final ms = [
-        mk('a', mood: 'calm', insp: ['moon', 'city'], place: 'Milano', type: 'drawing'),
-        mk('b', mood: 'calm', insp: ['moon'], place: 'Milano'),
+        mk('a', mood: 'calm', insp: ['moon', 'city'], place: 'Milano', type: 'drawing', song: 'Nuvole Bianche', artist: 'Einaudi'),
+        mk('b', mood: 'calm', insp: ['moon'], place: 'Milano', song: 'Experience', artist: 'Einaudi'),
         mk('c', mood: 'lonely', insp: ['rain'], atmosphere: 'dreamy'),
       ];
       final i = computeInsights(ms);
@@ -108,6 +112,8 @@ void main() {
       expect(i.places.single.key, 'Milano');
       expect(i.types.first.key, 'writing');
       expect(i.atmospheres.single.key, 'dreamy');
+      expect(i.artists.single.key, 'Einaudi');
+      expect(i.artists.single.count, 2);
       expect(computeInsights(const []).total, 0);
     });
   });

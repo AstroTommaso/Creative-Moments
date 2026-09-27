@@ -581,5 +581,6 @@
       }
     }
   },
-  "momentDetailRelatedHeader": "This reminds me of"
+  "momentDetailRelatedHeader": "This reminds me of",
+  "profileSectionMusic": "Music you return to"
 }

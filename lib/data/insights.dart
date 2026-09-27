@@ -14,9 +14,10 @@ class Insights {
     this.moods = const [],
     this.atmospheres = const [],
     this.places = const [],
+    this.artists = const [],
   });
   final int total;
-  final List<Ranked> types, inspirations, moods, atmospheres, places;
+  final List<Ranked> types, inspirations, moods, atmospheres, places, artists;
 }
 
 List<Ranked> _rank(Iterable<String> keys, {int take = 5}) {
@@ -41,4 +42,5 @@ Insights computeInsights(List<Moment> moments) => Insights(
   moods: _rank(moments.map((m) => m.mood ?? '')),
   atmospheres: _rank(moments.map((m) => m.atmosphere ?? '')),
   places: _rank(moments.map((m) => m.locationName ?? '')),
+  artists: _rank(moments.where((m) => m.hasMusic).map((m) => m.musicArtist ?? '')),
 );

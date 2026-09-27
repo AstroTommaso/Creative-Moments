@@ -197,6 +197,7 @@ class ProfileScreen extends ConsumerWidget {
                 (k) => '${emojiFor(atmosphereOptions, k)} ${labelFor(context.l10n, atmosphereOptions, k)}',
               ),
               section(context.l10n.profileSectionCreativePlaces, ins.places, (k) => '📍 $k'),
+              section(context.l10n.profileSectionMusic, ins.artists, (k) => '🎧 $k'),
             ],
           ],
         ),
