@@ -610,5 +610,6 @@
         "type": "String"
       }
     }
-  }
+  },
+  "momentDetailReliveAction": "Relive this moment"
 }

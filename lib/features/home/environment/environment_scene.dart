@@ -16,10 +16,24 @@ import 'scene_painter.dart';
 /// The user's living environment. [intensity] fades it back on screens where
 /// concentration matters (1 = Home, ~0.25 = list screens).
 class EnvironmentScene extends ConsumerStatefulWidget {
-  const EnvironmentScene({super.key, this.intensity = 1, this.parallax, this.quality = 1, this.overrideHour});
+  const EnvironmentScene({
+    super.key,
+    this.intensity = 1,
+    this.parallax,
+    this.quality = 1,
+    this.overrideHour,
+    this.overrideEnvironments,
+    this.overrideAtmosphere,
+  });
   final double intensity, quality;
   final ValueListenable<double>? parallax;
   final double? overrideHour;
+  /// When set (e.g. reliving a past moment), these replace the live
+  /// environment mix and atmosphere instead of reading current preferences,
+  /// and today's weather/evolution bias are skipped — neither applies to a
+  /// historical snapshot.
+  final List<String>? overrideEnvironments;
+  final String? overrideAtmosphere;
 
   @override
   ConsumerState<EnvironmentScene> createState() => _EnvironmentSceneState();
@@ -83,32 +97,35 @@ class _EnvironmentSceneState extends ConsumerState<EnvironmentScene> with Single
     final evo = ref.watch(evolutionProvider);
     _reduce = prefs.reduceMotion || MediaQuery.of(context).disableAnimations;
 
-    final active = prefs.activeEnvironments;
+    final historical = widget.overrideEnvironments != null;
+    final active = widget.overrideEnvironments ?? prefs.activeEnvironments;
     final target = <String, double>{};
     for (var i = 0; i < active.length; i++) {
       target[active[i]] = i == 0 ? 1.0 : 0.72;
     }
-    // Home slowly evolves with what the user makes.
-    for (final e in evo.bias.entries) {
-      target[e.key] = ((target[e.key] ?? 0) + e.value).clamp(0.0, 1.0);
-    }
-    if (weather != null) {
-      switch (weather) {
-        case Weather.rain:
-          target['rain'] = 0.9;
-        case Weather.cloudy:
-          target['clouds'] = 0.9;
-        case Weather.snow:
-          target['winter'] = 0.9;
-        case Weather.clear || Weather.fog:
-          break;
+    if (!historical) {
+      // Home slowly evolves with what the user makes.
+      for (final e in evo.bias.entries) {
+        target[e.key] = ((target[e.key] ?? 0) + e.value).clamp(0.0, 1.0);
+      }
+      if (weather != null) {
+        switch (weather) {
+          case Weather.rain:
+            target['rain'] = 0.9;
+          case Weather.cloudy:
+            target['clouds'] = 0.9;
+          case Weather.snow:
+            target['winter'] = 0.9;
+          case Weather.clear || Weather.fog:
+            break;
+        }
       }
     }
     model
       ..target = target
-      ..atmosphere = prefs.atmosphere
-      ..weather = weather
-      ..starBoost = evo.starBoost
+      ..atmosphere = widget.overrideAtmosphere ?? prefs.atmosphere
+      ..weather = historical ? null : weather
+      ..starBoost = historical ? 0 : evo.starBoost
       ..density = switch (prefs.visualDensity) {
         'subtle' => 0.55,
         'immersive' => 1.3,

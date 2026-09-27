@@ -427,5 +427,6 @@
   "momentDetailExportImage": "Immagine",
   "momentDetailExportPdf": "PDF",
   "momentDetailExportText": "Testo",
-  "momentDetailExportFailed": "Non è stato possibile esportarlo. {error}"
+  "momentDetailExportFailed": "Non è stato possibile esportarlo. {error}",
+  "momentDetailReliveAction": "Rivivi questo momento"
 }

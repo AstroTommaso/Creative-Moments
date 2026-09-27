@@ -20,6 +20,7 @@ import '../../shared/widgets/ui.dart';
 import '../creation/draft.dart';
 import '../world/constellation_layout.dart';
 import 'export_moment.dart';
+import 'relive_screen.dart';
 
 final _momentFetchProvider = FutureProvider.family<Moment?, String>((ref, id) => ref.read(momentRepoProvider).get(id));
 
@@ -136,6 +137,10 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
     context.push('/create/edit');
   }
 
+  void _relive() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => ReliveMomentScreen(moment: widget.moment)));
+  }
+
   Future<void> _export() async {
     final l10n = context.l10n;
     final choice = await showModalBottomSheet<String>(
@@ -199,6 +204,10 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
                   child: _RoundBtn(icon: Icons.arrow_back_rounded, label: l10n.momentDetailBack, onTap: () => context.pop()),
                 ),
                 actions: [
+                  Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: _RoundBtn(icon: Icons.auto_awesome_outlined, label: l10n.momentDetailReliveAction, onTap: _relive),
+                  ),
                   Padding(
                     padding: const EdgeInsets.all(6),
                     child: PopupMenuButton<String>(
