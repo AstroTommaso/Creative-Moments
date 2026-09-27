@@ -582,5 +582,21 @@
     }
   },
   "momentDetailRelatedHeader": "This reminds me of",
-  "profileSectionMusic": "Music you return to"
+  "profileSectionMusic": "Music you return to",
+  "homeOnThisDayLabel": "{years, plural, one{One year ago} other{{years} years ago}}",
+  "@homeOnThisDayLabel": {
+    "placeholders": {
+      "years": {
+        "type": "int"
+      }
+    }
+  },
+  "homeOnThisDaySemanticLabel": "On this day: {title}",
+  "@homeOnThisDaySemanticLabel": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  }
 }

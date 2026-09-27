@@ -420,5 +420,7 @@
   "homeContinueCreatingHeader": "Continua a creare",
   "homeContinueMomentSemanticLabel": "Continua {title}",
   "momentDetailRelatedHeader": "Questo mi ricorda",
-  "profileSectionMusic": "Musica a cui torni"
+  "profileSectionMusic": "Musica a cui torni",
+  "homeOnThisDayLabel": "{years, plural, one{Un anno fa} other{{years} anni fa}}",
+  "homeOnThisDaySemanticLabel": "In questo giorno: {title}"
 }

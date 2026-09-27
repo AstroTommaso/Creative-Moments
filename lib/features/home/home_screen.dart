@@ -122,6 +122,54 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 SliverToBoxAdapter(
                   child: Builder(
                     builder: (context) {
+                      final matches = onThisDay(DateTime.now(), moments.value ?? const []);
+                      if (matches.isEmpty) return const SizedBox.shrink();
+                      final years = DateTime.now().year - matches.first.createdAt.year;
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(Sp.xl, Sp.md, Sp.xl, 0),
+                        child: Glass(
+                          onTap: () => context.push('/moment/${matches.first.id}'),
+                          semanticLabel: context.l10n.homeOnThisDaySemanticLabel(matches.first.displayTitle(context.l10n)),
+                          child: Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(Rd.sm),
+                                child: SizedBox(
+                                  width: 48,
+                                  height: 48,
+                                  child: MomentArtwork(moment: matches.first, compact: true),
+                                ),
+                              ),
+                              const SizedBox(width: Sp.md),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      context.l10n.homeOnThisDayLabel(years),
+                                      style: AppType.ui(12, weight: FontWeight.w800, color: white.withValues(alpha: 0.7), letterSpacing: 1.1),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      matches.first.displayTitle(context.l10n),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: AppType.ui(16, weight: FontWeight.w700, color: white),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.chevron_right_rounded, color: Colors.white70),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Builder(
+                    builder: (context) {
                       final drafts = (moments.value ?? const []).where((m) => m.isDraft).toList();
                       if (drafts.isEmpty) return const SizedBox.shrink();
                       return Column(
@@ -280,6 +328,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
+}
+
+/// Finished moments made on this same month/day, in whichever past year is
+/// most recent (usually just one) — a quiet "on this day" presence, never a
+/// notification.
+List<Moment> onThisDay(DateTime now, List<Moment> all) {
+  final candidates = all.where((m) {
+    if (m.isDraft) return false;
+    final c = m.createdAt;
+    return c.year < now.year && c.month == now.month && c.day == now.day;
+  }).toList();
+  if (candidates.isEmpty) return const [];
+  candidates.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  final latestYear = candidates.first.createdAt.year;
+  return candidates.where((m) => m.createdAt.year == latestYear).toList();
 }
 
 int _hash(String s) {

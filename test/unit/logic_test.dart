@@ -9,6 +9,7 @@ import 'package:creative_moments/data/models/moment.dart';
 import 'package:creative_moments/l10n/app_localizations.dart';
 import 'package:creative_moments/l10n/app_localizations_en.dart';
 import 'package:creative_moments/features/home/environment/evolution.dart';
+import 'package:creative_moments/features/home/home_screen.dart';
 import 'package:creative_moments/features/moments/moment_detail_screen.dart';
 import 'package:creative_moments/features/world/constellation_layout.dart';
 import 'package:creative_moments/data/providers.dart';
@@ -185,6 +186,25 @@ void main() {
     test('empty and single-moment histories do not crash', () {
       expect(layoutConstellation(const []).nodes, isEmpty);
       expect(layoutConstellation([mk('a')]).nodes.length, 1);
+    });
+  });
+
+  group('on this day', () {
+    test('finds a finished moment from the most recent matching past year', () {
+      final now = DateTime(2026, 9, 27, 18);
+      final lastYear = mk('a', at: DateTime(2025, 9, 27, 10));
+      final twoYearsAgo = mk('b', at: DateTime(2024, 9, 27, 9));
+      final wrongDay = mk('c', at: DateTime(2025, 9, 26));
+      final thisYear = mk('d', at: DateTime(2026, 9, 27));
+      final r = onThisDay(now, [lastYear, twoYearsAgo, wrongDay, thisYear]);
+      expect(r.map((m) => m.id), [lastYear.id]);
+    });
+
+    test('ignores drafts and returns nothing when there is no match', () {
+      final now = DateTime(2026, 9, 27);
+      final draftLastYear = mk('a', at: DateTime(2025, 9, 27), draft: true);
+      expect(onThisDay(now, [draftLastYear]), isEmpty);
+      expect(onThisDay(now, const []), isEmpty);
     });
   });
 
