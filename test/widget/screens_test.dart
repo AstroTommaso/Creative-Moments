@@ -22,9 +22,15 @@ import '../support/harness.dart';
 
 /// Mounts a single screen (real theme, fake data, real GoRouter) on top of a
 /// blank home route so push/pop behave exactly as in the app.
-Future<ProviderContainer> pumpScreen(WidgetTester tester, FakeBackend backend, Widget screen, {void Function(ProviderContainer c)? before}) async {
+Future<ProviderContainer> pumpScreen(
+  WidgetTester tester,
+  FakeBackend backend,
+  Widget screen, {
+  void Function(ProviderContainer c)? before,
+  Size size = const Size(390, 844),
+}) async {
   AppType.systemFonts = true;
-  tester.view.physicalSize = const Size(390, 844) * 3;
+  tester.view.physicalSize = size * 3;
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
   tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(disableAnimations: true);
@@ -83,19 +89,25 @@ void main() {
       await pumpScreen(tester, signedInBackend(), const HomeScreen());
       expect(find.textContaining('Astro'), findsOneWidget);
       expect(find.text('Create a Moment'), findsWidgets);
-      expect(find.textContaining('inspir'), findsWidgets);
+      // The exact wording depends on the real time of day (see promptForHour);
+      // check for whatever it actually is right now instead of a substring
+      // that only some of its variants contain.
+      expect(find.text(promptForHour(DateTime.now().hour)), findsOneWidget);
       expect(find.text('Your recent moments'), findsOneWidget);
     });
 
     testWidgets('empty state invites the first moment', (tester) async {
-      await pumpScreen(tester, signedInBackend(), const HomeScreen());
+      // Taller viewport: the greeting/prompt above this section wraps to a
+      // different number of lines depending on the real time of day, which
+      // would otherwise sometimes push this content below the fold.
+      await pumpScreen(tester, signedInBackend(), const HomeScreen(), size: const Size(390, 1400));
       expect(find.text('Your story starts here.'), findsOneWidget);
       expect(find.text('Create something worth remembering.'), findsOneWidget);
     });
 
     testWidgets('shows recent moments as visual cards and opens one', (tester) async {
       final b = signedInBackend(seed: true);
-      await pumpScreen(tester, b, const HomeScreen());
+      await pumpScreen(tester, b, const HomeScreen(), size: const Size(390, 1400));
       expect(find.text('Loneliness, but peaceful'), findsOneWidget);
       expect(find.text('Rain on the window'), findsOneWidget);
       expect(find.text('Your story starts here.'), findsNothing);

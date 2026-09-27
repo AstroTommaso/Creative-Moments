@@ -1,4 +1,5 @@
 import 'package:creative_moments/dev/fake_backend.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../support/harness.dart';
@@ -7,7 +8,10 @@ import '../support/journey.dart';
 void main() {
   testWidgets('core journey: register → onboarding → home → create → write → inspire → save → open', (tester) async {
     final backend = FakeBackend();
-    await pumpApp(tester, backend);
+    // Taller viewport: Home's greeting/prompt text length depends on the
+    // real time of day, which would otherwise sometimes push the empty-state
+    // content this journey checks for below the fold.
+    await pumpApp(tester, backend, size: const Size(390, 1400));
     await runCoreJourney(tester, email: 'luna@example.com');
     // persisted in the (fake) backend, with its details
     expect(backend.moments.length, 1);
