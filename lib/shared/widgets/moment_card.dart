@@ -147,7 +147,14 @@ class MomentCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        Text('${moment.type.emoji}  $when', style: context.tt.bodySmall),
+                        Flexible(
+                          child: Text(
+                            '${moment.type.emoji}  $when',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: context.tt.bodySmall,
+                          ),
+                        ),
                         const Spacer(),
                         if (insp.isNotEmpty) Text(insp, style: const TextStyle(fontSize: 13)),
                       ],

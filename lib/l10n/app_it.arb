@@ -418,5 +418,6 @@
   "momentFallbackSunset": "Un momento al tramonto",
   "momentFallbackUntitled": "Momento senza titolo",
   "homeContinueCreatingHeader": "Continua a creare",
-  "homeContinueMomentSemanticLabel": "Continua {title}"
+  "homeContinueMomentSemanticLabel": "Continua {title}",
+  "momentDetailRelatedHeader": "Questo mi ricorda"
 }

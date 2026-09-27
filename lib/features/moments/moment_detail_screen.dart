@@ -18,8 +18,23 @@ import '../../shared/widgets/motion.dart';
 import '../../shared/widgets/signed_image.dart';
 import '../../shared/widgets/ui.dart';
 import '../creation/draft.dart';
+import '../world/constellation_layout.dart';
 
 final _momentFetchProvider = FutureProvider.family<Moment?, String>((ref, id) => ref.read(momentRepoProvider).get(id));
+
+/// The few other finished moments this one most resembles (shared
+/// inspirations, mood, type, time, place — the same scoring the
+/// constellation uses), strongest first.
+List<Moment> relatedMoments(Moment target, List<Moment> all, {int max = 3, double minSimilarity = 2}) {
+  final scored = <(Moment, double)>[];
+  for (final other in all) {
+    if (other.id == target.id || other.isDraft) continue;
+    final s = similarity(target, other);
+    if (s >= minSimilarity) scored.add((other, s));
+  }
+  scored.sort((a, b) => b.$2.compareTo(a.$2));
+  return [for (final (m, _) in scored.take(max)) m];
+}
 
 String relativeDay(BuildContext context, DateTime d) {
   final l10n = context.l10n;
@@ -128,6 +143,7 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
     final locale = Localizations.localeOf(context).toString();
     final drawing = m.drawing;
     final answered = m.prompts.where((p) => (p.answer ?? '').trim().isNotEmpty).toList();
+    final related = relatedMoments(m, ref.watch(momentsProvider).value ?? const []);
     final time = DateFormat('HH:mm', locale).format(m.createdAt);
     final date = DateFormat('MMMM d, y', locale).format(m.createdAt);
     int i = 0;
@@ -298,6 +314,28 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
                                   ),
                                   const SizedBox(height: Sp.xl),
                                 ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      if (related.isNotEmpty)
+                        stagger(
+                          Padding(
+                            padding: const EdgeInsets.only(top: Sp.xxl),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(l10n.momentDetailRelatedHeader.toUpperCase(), style: tt.labelSmall),
+                                const SizedBox(height: Sp.md),
+                                SizedBox(
+                                  height: 210,
+                                  child: ListView.separated(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: related.length,
+                                    separatorBuilder: (_, _) => const SizedBox(width: Sp.md),
+                                    itemBuilder: (_, idx) => MomentCard(moment: related[idx], width: 160, height: 210, compact: true),
+                                  ),
+                                ),
                               ],
                             ),
                           ),

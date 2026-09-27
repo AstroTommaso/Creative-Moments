@@ -580,5 +580,6 @@
         "type": "String"
       }
     }
-  }
+  },
+  "momentDetailRelatedHeader": "This reminds me of"
 }

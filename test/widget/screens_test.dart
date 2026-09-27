@@ -418,6 +418,19 @@ void main() {
       expect(find.text('IS THE RAIN PART OF WHAT YOU ARE TRYING TO SAY?'), findsOneWidget);
     });
 
+    testWidgets('shows the moments it most resembles, strongest first', (tester) async {
+      final b = signedInBackend(seed: true);
+      final m = b.moments.values.firstWhere((e) => e.title == 'Loneliness, but peaceful');
+      await pumpScreen(tester, b, MomentDetailScreen(id: m.id));
+      await tester.scrollUntilVisible(find.text('THIS REMINDS ME OF'), 300, scrollable: find.byType(Scrollable).first);
+      expect(find.text('Static'), findsOneWidget);
+      expect(find.text('Morning light'), findsOneWidget);
+      // Shares two inspirations with this one, so it must come first.
+      final staticCenter = tester.getCenter(find.text('Static'));
+      final morningCenter = tester.getCenter(find.text('Morning light'));
+      expect(staticCenter.dx, lessThan(morningCenter.dx));
+    });
+
     testWidgets('delete asks first, then removes the moment', (tester) async {
       final b = signedInBackend(seed: true);
       final m = b.moments.values.firstWhere((e) => e.title == 'Rain on the window');

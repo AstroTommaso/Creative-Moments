@@ -25,6 +25,7 @@ Moment mk(
   DateTime? at,
   String? place,
   String? atmosphere,
+  bool draft = false,
 }) {
   final t = at ?? DateTime(2026, 9, 1, 22);
   return Moment(
@@ -38,6 +39,7 @@ Moment mk(
     locationName: place,
     createdAt: t,
     updatedAt: t,
+    finishedAt: draft ? null : t,
     inspirations: [for (final i in insp) Inspiration(type: i, name: i)],
   );
 }
@@ -177,6 +179,32 @@ void main() {
     test('empty and single-moment histories do not crash', () {
       expect(layoutConstellation(const []).nodes, isEmpty);
       expect(layoutConstellation([mk('a')]).nodes.length, 1);
+    });
+  });
+
+  group('related moments', () {
+    test('picks the most similar finished moments, strongest first, capped at max', () {
+      final target = mk('t', mood: 'calm', insp: ['moon', 'city']);
+      final close = mk('close', mood: 'calm', insp: ['moon']);
+      final closer = mk('closer', mood: 'calm', insp: ['moon', 'city']);
+      final unrelated = mk('unrelated', mood: 'happy', insp: ['desert'], type: 'drawing', at: DateTime(2026, 3, 1, 10), tod: 'day');
+      final r = relatedMoments(target, [target, close, closer, unrelated]);
+      expect(r.map((m) => m.id), [closer.id, close.id]);
+    });
+
+    test('excludes drafts and respects the max count', () {
+      final target = mk('t', insp: ['moon']);
+      final drafted = mk('d1', insp: ['moon'], draft: true);
+      final others = [for (var i = 0; i < 5; i++) mk('o$i', insp: ['moon'])];
+      final r = relatedMoments(target, [target, drafted, ...others]);
+      expect(r.any((m) => m.id == drafted.id), isFalse);
+      expect(r.length, 3);
+    });
+
+    test('nothing similar enough means an empty list, not a weak match', () {
+      final target = mk('t', mood: 'calm', insp: ['moon']);
+      final barely = mk('b', mood: 'happy', at: DateTime(2026, 1, 1));
+      expect(relatedMoments(target, [target, barely]), isEmpty);
     });
   });
 
