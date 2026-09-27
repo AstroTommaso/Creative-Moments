@@ -39,12 +39,14 @@ Copy `.env.example` to `.env` and fill in:
 
 | Variable | Meaning |
 | --- | --- |
-| `DATABASE_URL` | Pooled Postgres connection (port 6543, `pgbouncer=true`) — used at runtime |
-| `DIRECT_URL` | Direct Postgres connection (port 5432) — used only by `prisma migrate` |
+| `DATABASE_URL` | Supavisor **Transaction pooler** connection (port 6543, `pgbouncer=true`) — used at runtime |
+| `DIRECT_URL` | Supavisor **Session pooler** connection (port 5432) — used only by `prisma migrate` |
 | `SUPABASE_URL` | `https://<project-ref>.supabase.co` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Project Settings → API → `service_role` key. **Never** expose this to any client |
 | `APP_BASE_URL` | Public URL of this backend once deployed (used in password-reset email links) |
 | `SMTP_*` | Optional; leave empty in development, emails are logged to the console instead |
+
+Get `DATABASE_URL`/`DIRECT_URL` from Supabase's **Connect** dialog (top of the project dashboard), not by hand-building a `db.<project-ref>.supabase.co` URL: that "Direct connection" host resolves over IPv6 by default, which most hosts (Railway included) cannot reach, and fails with a `P1001` connection error. Use the **Transaction pooler** tab for `DATABASE_URL` and the **Session pooler** tab for `DIRECT_URL` — both go through `aws-0-<region>.pooler.supabase.com` with username `postgres.<project-ref>` (note the dot), which is IPv4-reachable.
 
 Both Supabase Storage buckets (`moment-media`, `avatars`) created by the old
 migrations can stay as-is — this backend uses them directly via the
