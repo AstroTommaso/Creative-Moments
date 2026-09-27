@@ -252,13 +252,16 @@ class DraftNotifier extends Notifier<DraftState> {
     }
   }
 
+  /// [name] is the localized label to store for a newly-added inspiration;
+  /// the caller resolves it (this notifier has no BuildContext). Ignored when
+  /// removing an existing inspiration.
   void toggleInspiration(String type, {String? name}) {
     final list = [...state.inspirations];
     final i = list.indexWhere((e) => e.type == type);
     if (i >= 0) {
       list.removeAt(i);
     } else {
-      list.add(Inspiration(type: type, name: name ?? labelFor(inspirationOptions, type)));
+      list.add(Inspiration(type: type, name: name ?? type));
     }
     _touch(state.copyWith(inspirations: list));
   }
@@ -365,7 +368,10 @@ class DraftNotifier extends Notifier<DraftState> {
   }
 
   /// Final save: core, details, drawing PNG. Throws a friendly [AppError].
-  Future<String> finish() async {
+  /// [resolveQuestionText] resolves a question id to its localized text for
+  /// permanent storage (this notifier has no BuildContext); falls back to the
+  /// question's fixed English text when not provided.
+  Future<String> finish({String Function(String id)? resolveQuestionText}) async {
     _debounce?.cancel();
     _retry?.cancel();
     // wait for any autosave in flight
@@ -383,7 +389,13 @@ class DraftNotifier extends Notifier<DraftState> {
         final prompts = [...s.prompts];
         final q = s.question;
         if (q != null && s.questionAnswer.trim().isNotEmpty) {
-          prompts.add(PromptAnswer(id: _uuid.v4(), question: q.text, answer: s.questionAnswer.trim()));
+          prompts.add(
+            PromptAnswer(
+              id: _uuid.v4(),
+              question: resolveQuestionText != null ? resolveQuestionText(q.id) : q.text,
+              answer: s.questionAnswer.trim(),
+            ),
+          );
         }
         await repo.saveDetails(s.id, s.inspirations, prompts);
         state = state.copyWith(prompts: prompts, question: null, questionAnswer: '');

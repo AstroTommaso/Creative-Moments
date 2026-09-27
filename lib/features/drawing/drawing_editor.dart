@@ -2,13 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/services/l10n_ext.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
 import '../../data/models/drawing.dart';
+import '../../l10n/app_localizations.dart';
 import '../../shared/widgets/drawing_view.dart';
 import '../../shared/widgets/ui.dart';
 
-const paperColors = <(String, int)>[('Night', 0xFF12142A), ('Ink', 0xFF000000), ('Cream', 0xFFF6F1E9), ('Paper', 0xFFFFFFFF)];
+final paperColors = <(String Function(AppLocalizations l10n) label, int color)>[
+  ((l10n) => l10n.drawingPaperNight, 0xFF12142A),
+  ((l10n) => l10n.drawingPaperInk, 0xFF000000),
+  ((l10n) => l10n.drawingPaperCream, 0xFFF6F1E9),
+  ((l10n) => l10n.drawingPaperPaper, 0xFFFFFFFF),
+];
 
 const inkColors = <int>[
   0xFFF3EFE8,
@@ -145,9 +152,9 @@ class _DrawingCanvasEditorState extends ConsumerState<DrawingCanvasEditor> {
   Future<void> _confirmClear() async {
     final ok = await confirmDialog(
       context,
-      title: 'Clear the canvas?',
-      message: 'This removes everything you drew. You cannot undo it.',
-      confirmLabel: 'Clear',
+      title: context.l10n.drawingClearCanvasTitle,
+      message: context.l10n.drawingClearCanvasMessage,
+      confirmLabel: context.l10n.drawingClearLabel,
       destructive: true,
     );
     if (ok) {
@@ -194,7 +201,7 @@ class _DrawingCanvasEditorState extends ConsumerState<DrawingCanvasEditor> {
                       if (ctl.end()) widget.onChanged(ctl.data);
                     },
                     child: Semantics(
-                      label: 'Drawing canvas',
+                      label: context.l10n.drawingCanvasLabel,
                       child: RepaintBoundary(
                         child: CustomPaint(
                           size: Size(cw, ch),
@@ -262,6 +269,7 @@ class _Toolbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.cm;
+    final l10n = context.l10n;
     Widget tool(BrushTool t, IconData icon, String label) => _IconBtn(
       icon: icon,
       label: label,
@@ -302,7 +310,7 @@ class _Toolbar extends StatelessWidget {
                 for (final col in inkColors)
                   Semantics(
                     button: true,
-                    label: 'Colour',
+                    label: l10n.drawingColourLabel,
                     selected: ctl.color == col,
                     child: GestureDetector(
                       onTap: () => ctl.set(color: col, tool: ctl.tool == BrushTool.eraser ? BrushTool.pencil : ctl.tool),
@@ -330,13 +338,13 @@ class _Toolbar extends StatelessWidget {
           Row(
             children: [
               for (final w in <Widget>[
-                tool(BrushTool.pencil, Icons.edit_outlined, 'Pencil'),
-                tool(BrushTool.brush, Icons.brush_outlined, 'Brush'),
-                tool(BrushTool.eraser, Icons.cleaning_services_outlined, 'Eraser'),
-                _IconBtn(icon: Icons.line_weight_rounded, label: 'Brush size', active: showSize, onTap: onToggleSize),
+                tool(BrushTool.pencil, Icons.edit_outlined, l10n.drawingPencilLabel),
+                tool(BrushTool.brush, Icons.brush_outlined, l10n.drawingBrushLabel),
+                tool(BrushTool.eraser, Icons.cleaning_services_outlined, l10n.drawingEraserLabel),
+                _IconBtn(icon: Icons.line_weight_rounded, label: l10n.drawingBrushSizeLabel, active: showSize, onTap: onToggleSize),
                 _IconBtn(
                   icon: Icons.undo_rounded,
-                  label: 'Undo',
+                  label: l10n.drawingUndoLabel,
                   onTap: ctl.canUndo
                       ? () {
                           ctl.undo();
@@ -346,7 +354,7 @@ class _Toolbar extends StatelessWidget {
                 ),
                 _IconBtn(
                   icon: Icons.redo_rounded,
-                  label: 'Redo',
+                  label: l10n.drawingRedoLabel,
                   onTap: ctl.canRedo
                       ? () {
                           ctl.redo();
@@ -355,7 +363,7 @@ class _Toolbar extends StatelessWidget {
                       : null,
                 ),
                 PopupMenuButton<int>(
-                  tooltip: 'Paper',
+                  tooltip: l10n.drawingPaperTooltip,
                   padding: EdgeInsets.zero,
                   icon: Icon(Icons.texture_rounded, color: c.text),
                   color: c.surfaceHigh,
@@ -379,16 +387,16 @@ class _Toolbar extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: Sp.md),
-                            Text(p.$1, style: AppType.ui(14, color: c.text)),
+                            Text(p.$1(l10n), style: AppType.ui(14, color: c.text)),
                           ],
                         ),
                       ),
                   ],
                 ),
-                _IconBtn(icon: Icons.delete_outline_rounded, label: 'Clear canvas', onTap: ctl.strokes.isEmpty ? null : onClear),
+                _IconBtn(icon: Icons.delete_outline_rounded, label: l10n.drawingClearButtonLabel, onTap: ctl.strokes.isEmpty ? null : onClear),
                 _IconBtn(
                   icon: fullscreen ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
-                  label: fullscreen ? 'Exit full screen' : 'Full screen',
+                  label: fullscreen ? l10n.drawingExitFullScreenLabel : l10n.drawingFullScreenLabel,
                   onTap: onToggleFullscreen,
                 ),
               ])

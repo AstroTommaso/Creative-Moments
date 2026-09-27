@@ -142,17 +142,21 @@ void main() {
         visualDensity: 'immersive',
         reduceMotion: true,
         onboarded: true,
+        language: 'it',
       );
       final json = p.toJson();
       expect(json['environment'], 'ocean');
+      expect(json['language'], 'it');
       final back = UserPreferences.fromJson(json);
       expect(back.environments, ['ocean', 'moon']);
       expect(back.timeStyle, 'night');
       expect(back.reduceMotion, isTrue);
+      expect(back.language, 'it');
       final sparse = UserPreferences.fromJson({});
       expect(sparse.darkMode, isTrue);
       expect(sparse.onboarded, isFalse);
       expect(sparse.environment, 'moon');
+      expect(sparse.language, 'system');
     });
 
     test('activeEnvironments lists the primary first, without duplicates', () {

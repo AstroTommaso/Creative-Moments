@@ -101,7 +101,7 @@ class FakeBackend {
           if (text.isNotEmpty) Creation(id: _uuid.v4(), momentId: id, type: 'text', textContent: text, createdAt: at),
           if (drawing != null) Creation(id: _uuid.v4(), momentId: id, type: 'drawing', drawing: drawing, createdAt: at),
         ],
-        inspirations: [for (final i in insp) Inspiration(type: i, name: labelFor(inspirationOptions, i))],
+        inspirations: [for (final i in insp) Inspiration(type: i, name: i[0].toUpperCase() + i.substring(1))],
         prompts: answer == null ? const [] : [PromptAnswer(id: _uuid.v4(), question: 'Is the rain part of what you are trying to say?', answer: answer)],
       );
     }

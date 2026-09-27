@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/services/l10n_ext.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
 import '../widgets/ui.dart';
@@ -25,11 +26,11 @@ class AppShell extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: Sp.sm, vertical: Sp.sm),
             child: Row(
               children: [
-                _Tab(icon: Icons.blur_circular_rounded, label: 'Home', on: shell.currentIndex == 0, onTap: () => _go(0)),
-                _Tab(icon: Icons.auto_stories_outlined, label: 'Moments', on: shell.currentIndex == 1, onTap: () => _go(1)),
+                _Tab(icon: Icons.blur_circular_rounded, label: context.l10n.shellTabHome, on: shell.currentIndex == 0, onTap: () => _go(0)),
+                _Tab(icon: Icons.auto_stories_outlined, label: context.l10n.shellTabMoments, on: shell.currentIndex == 1, onTap: () => _go(1)),
                 const _CreateButton(),
-                _Tab(icon: Icons.public_rounded, label: 'World', on: shell.currentIndex == 2, onTap: () => _go(2)),
-                _Tab(icon: Icons.person_outline_rounded, label: 'Me', on: shell.currentIndex == 3, onTap: () => _go(3)),
+                _Tab(icon: Icons.public_rounded, label: context.l10n.shellTabWorld, on: shell.currentIndex == 2, onTap: () => _go(2)),
+                _Tab(icon: Icons.person_outline_rounded, label: context.l10n.shellTabMe, on: shell.currentIndex == 3, onTap: () => _go(3)),
               ],
             ),
           ),
@@ -95,7 +96,7 @@ class _CreateButton extends StatelessWidget {
     final c = context.cm;
     return Semantics(
       button: true,
-      label: 'Create a Moment',
+      label: context.l10n.createMomentCta,
       child: GestureDetector(
         onTap: () {
           HapticFeedback.mediumImpact();

@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/constants/catalog.dart';
+import '../../core/constants/question_library.dart';
 import '../../core/errors/app_error.dart';
+import '../../core/services/l10n_ext.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
 import '../../data/providers.dart';
@@ -56,7 +58,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
       _error = null;
     });
     try {
-      final id = await ref.read(draftProvider.notifier).finish();
+      final id = await ref.read(draftProvider.notifier).finish(resolveQuestionText: (id) => questionText(context.l10n, id));
       if (!mounted) return;
       final wasNew = !ref.read(draftProvider).isEditing;
       ref.read(draftProvider.notifier).clear();
@@ -79,7 +81,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
     return AtmoScaffold(
       intensity: 0.5,
       appBar: AppBar(
-        leading: IconButton(tooltip: 'Back', icon: const Icon(Icons.arrow_back_rounded), onPressed: () => _i == 0 ? context.pop() : _go(_i - 1)),
+        leading: IconButton(tooltip: context.l10n.detailsBackTooltip, icon: const Icon(Icons.arrow_back_rounded), onPressed: () => _i == 0 ? context.pop() : _go(_i - 1)),
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -121,7 +123,9 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(Sp.xl, Sp.sm, Sp.xl, Sp.lg),
               child: PrimaryButton(
-                label: last ? (d.isEditing ? 'Save changes' : 'Save Moment') : (_hasValue(step, d) ? 'Continue' : 'Skip'),
+                label: last
+                    ? (d.isEditing ? context.l10n.detailsSaveChangesLabel : context.l10n.detailsSaveMomentLabel)
+                    : (_hasValue(step, d) ? context.l10n.detailsContinueLabel : context.l10n.detailsSkipLabel),
                 loading: _busy,
                 onPressed: () => last ? _finish() : _go(_i + 1),
               ),
@@ -141,7 +145,7 @@ class SaveChipMini extends StatelessWidget {
     final err = state.status == SaveStatus.error;
     if (!err) return const SizedBox(width: 48);
     return Tooltip(
-      message: 'Not saved yet. Retrying…',
+      message: context.l10n.detailsNotSavedRetryingTooltip,
       child: Padding(
         padding: const EdgeInsets.all(Sp.md),
         child: Icon(Icons.cloud_off_rounded, color: context.cm.danger),
@@ -207,8 +211,8 @@ class _InspirationStepState extends ConsumerState<InspirationStep> {
     final n = ref.read(draftProvider.notifier);
     final selected = d.inspirations.map((e) => e.type).toSet();
     return _StepFrame(
-      title: "What's inspiring\nyou right now?",
-      subtitle: 'Choose anything that was in the room with you.',
+      title: context.l10n.detailsInspirationTitle,
+      subtitle: context.l10n.detailsInspirationSubtitle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -219,7 +223,7 @@ class _InspirationStepState extends ConsumerState<InspirationStep> {
               for (final o in inspirationOptions)
                 OptionTile(
                   emoji: o.emoji,
-                  label: o.label,
+                  label: o.label(context.l10n),
                   selected: selected.contains(o.id),
                   onTap: () {
                     if (o.id == 'other') {
@@ -227,10 +231,10 @@ class _InspirationStepState extends ConsumerState<InspirationStep> {
                         _other.clear();
                         n.toggleInspiration('other');
                       } else {
-                        n.toggleInspiration('other', name: 'Something else');
+                        n.toggleInspiration('other', name: context.l10n.detailsInspirationOtherDefault);
                       }
                     } else {
-                      n.toggleInspiration(o.id);
+                      n.toggleInspiration(o.id, name: o.label(context.l10n));
                     }
                   },
                 ),
@@ -244,8 +248,8 @@ class _InspirationStepState extends ConsumerState<InspirationStep> {
                     padding: const EdgeInsets.only(top: Sp.lg),
                     child: TextField(
                       controller: _other,
-                      onChanged: (v) => n.setCustomInspiration(v.trim().isEmpty ? 'Something else' : v),
-                      decoration: const InputDecoration(hintText: 'What was it?'),
+                      onChanged: (v) => n.setCustomInspiration(v.trim().isEmpty ? context.l10n.detailsInspirationOtherDefault : v),
+                      decoration: InputDecoration(hintText: context.l10n.detailsInspirationOtherHint),
                       style: AppType.ui(16, color: context.cm.text),
                     ),
                   )
@@ -286,7 +290,7 @@ class _MoodStepState extends ConsumerState<MoodStep> {
     final d = ref.watch(draftProvider);
     final n = ref.read(draftProvider.notifier);
     return _StepFrame(
-      title: 'How does this\nmoment feel?',
+      title: context.l10n.detailsMoodTitle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -297,7 +301,7 @@ class _MoodStepState extends ConsumerState<MoodStep> {
               for (final o in moodOptions)
                 OptionTile(
                   emoji: o.emoji,
-                  label: o.label,
+                  label: o.label(context.l10n),
                   selected: o.id == 'other' ? _other : (!_other && d.mood == o.id),
                   onTap: () {
                     if (o.id == 'other') {
@@ -322,7 +326,7 @@ class _MoodStepState extends ConsumerState<MoodStep> {
                       autofocus: true,
                       maxLength: 40,
                       onChanged: n.setMood,
-                      decoration: const InputDecoration(hintText: 'In your own words'),
+                      decoration: InputDecoration(hintText: context.l10n.detailsMoodOtherHint),
                       style: AppType.ui(16, color: context.cm.text),
                     ),
                   )
@@ -380,14 +384,14 @@ class _MusicStepState extends ConsumerState<MusicStep> {
   Widget build(BuildContext context) {
     final style = AppType.ui(16, color: context.cm.text);
     return _StepFrame(
-      title: 'What are you\nlistening to?',
-      subtitle: 'Add a song by hand, or skip if it was quiet.',
+      title: context.l10n.detailsMusicTitle,
+      subtitle: context.l10n.detailsMusicSubtitle,
       child: Column(
         children: [
           TextField(
             controller: _title,
             onChanged: (_) => _push(),
-            decoration: const InputDecoration(hintText: 'Song title', prefixIcon: Icon(Icons.music_note_rounded)),
+            decoration: InputDecoration(hintText: context.l10n.detailsMusicSongHint, prefixIcon: const Icon(Icons.music_note_rounded)),
             style: style,
             textCapitalization: TextCapitalization.words,
           ),
@@ -395,7 +399,7 @@ class _MusicStepState extends ConsumerState<MusicStep> {
           TextField(
             controller: _artist,
             onChanged: (_) => _push(),
-            decoration: const InputDecoration(hintText: 'Artist', prefixIcon: Icon(Icons.person_outline_rounded)),
+            decoration: InputDecoration(hintText: context.l10n.detailsMusicArtistHint, prefixIcon: const Icon(Icons.person_outline_rounded)),
             style: style,
             textCapitalization: TextCapitalization.words,
           ),
@@ -403,7 +407,7 @@ class _MusicStepState extends ConsumerState<MusicStep> {
           TextField(
             controller: _album,
             onChanged: (_) => _push(),
-            decoration: const InputDecoration(hintText: 'Album (optional)', prefixIcon: Icon(Icons.album_outlined)),
+            decoration: InputDecoration(hintText: context.l10n.detailsMusicAlbumHint, prefixIcon: const Icon(Icons.album_outlined)),
             style: style,
             textCapitalization: TextCapitalization.words,
           ),
@@ -459,13 +463,13 @@ class _LocationStepState extends ConsumerState<LocationStep> {
     final n = ref.read(draftProvider.notifier);
     final c = context.cm;
     return _StepFrame(
-      title: 'Where are you?',
-      subtitle: 'Optional. Your location is only stored with this moment.',
+      title: context.l10n.detailsLocationTitle,
+      subtitle: context.l10n.detailsLocationSubtitle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Glass(
-            semanticLabel: 'Use current location',
+            semanticLabel: context.l10n.detailsLocationUseCurrentLabel,
             onTap: _loading ? null : _locate,
             child: Row(
               children: [
@@ -473,7 +477,7 @@ class _LocationStepState extends ConsumerState<LocationStep> {
                     ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))
                     : Icon(Icons.my_location_rounded, color: c.accent),
                 const SizedBox(width: Sp.md),
-                Expanded(child: Text('Use current location', style: context.tt.titleMedium)),
+                Expanded(child: Text(context.l10n.detailsLocationUseCurrentLabel, style: context.tt.titleMedium)),
               ],
             ),
           ),
@@ -488,7 +492,7 @@ class _LocationStepState extends ConsumerState<LocationStep> {
           const SizedBox(height: Sp.lg),
           TextField(
             controller: _manual,
-            decoration: const InputDecoration(hintText: 'Or type a place', prefixIcon: Icon(Icons.place_outlined)),
+            decoration: InputDecoration(hintText: context.l10n.detailsLocationManualHint, prefixIcon: const Icon(Icons.place_outlined)),
             style: AppType.ui(16, color: c.text),
             textCapitalization: TextCapitalization.words,
             onChanged: (v) => n.setPlace(
@@ -528,8 +532,8 @@ class _QuestionStepState extends ConsumerState<QuestionStep> {
     final c = context.cm;
     final q = d.question;
     return _StepFrame(
-      title: 'A thought to\nsit with',
-      subtitle: 'Answer, skip, or ask for another. Nothing here is required.',
+      title: context.l10n.detailsQuestionTitle,
+      subtitle: context.l10n.detailsQuestionSubtitle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -546,13 +550,13 @@ class _QuestionStepState extends ConsumerState<QuestionStep> {
                 key: ValueKey(q.id),
                 padding: const EdgeInsets.all(Sp.xl),
                 child: Text(
-                  q.text,
+                  questionText(context.l10n, q.id),
                   style: AppType.display(28, style: FontStyle.italic, color: c.text, height: 1.2),
                 ),
               ),
             )
           else
-            Text('You have seen every question we have. Lovely.', style: context.tt.bodyMedium),
+            Text(context.l10n.detailsQuestionExhaustedMessage, style: context.tt.bodyMedium),
           const SizedBox(height: Sp.lg),
           if (q != null)
             TextField(
@@ -563,14 +567,14 @@ class _QuestionStepState extends ConsumerState<QuestionStep> {
               textCapitalization: TextCapitalization.sentences,
               style: AppType.display(20, color: c.text, height: 1.4),
               decoration: InputDecoration(
-                hintText: 'Write whatever comes…',
+                hintText: context.l10n.detailsQuestionAnswerHint,
                 hintStyle: AppType.display(20, color: c.muted, style: FontStyle.italic),
               ),
             ),
           const SizedBox(height: Sp.md),
           if (q != null)
             GhostButton(
-              label: 'Another question',
+              label: context.l10n.detailsAnotherQuestionLabel,
               icon: Icons.shuffle_rounded,
               onPressed: () {
                 _answer.clear();
@@ -618,14 +622,14 @@ class _FinishStepState extends ConsumerState<FinishStep> {
       ),
     );
     return _StepFrame(
-      title: d.isEditing ? 'Ready to keep\nthe changes?' : 'Ready to keep\nthis moment?',
+      title: d.isEditing ? context.l10n.detailsFinishEditTitle : context.l10n.detailsFinishNewTitle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           TextField(
             controller: _title,
             onChanged: ref.read(draftProvider.notifier).setTitle,
-            decoration: const InputDecoration(hintText: 'Give it a title (optional)'),
+            decoration: InputDecoration(hintText: context.l10n.detailsFinishTitleHint),
             style: AppType.display(24, weight: FontWeight.w700, color: c.text),
             textCapitalization: TextCapitalization.sentences,
           ),
@@ -634,15 +638,15 @@ class _FinishStepState extends ConsumerState<FinishStep> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                row(d.type.emoji, d.type.label),
-                row('🕒', '${labelFor(timeOptions, d.timeOfDay)} · ${TimeOfDay.fromDateTime(d.createdAt).format(context)}'),
+                row(d.type.emoji, d.type.label(context.l10n)),
+                row('🕒', '${labelFor(context.l10n, timeOptions, d.timeOfDay)} · ${TimeOfDay.fromDateTime(d.createdAt).format(context)}'),
                 if (d.inspirations.isNotEmpty) row('✨', d.inspirations.map((e) => e.name).join(' · ')),
-                if (d.mood != null) row('🫧', labelFor(moodOptions, d.mood)),
+                if (d.mood != null) row('🫧', labelFor(context.l10n, moodOptions, d.mood)),
                 if (d.music != null) row('🎧', [d.music!.title, d.music!.artist].whereType<String>().join(' — ')),
                 if (d.place != null) row('📍', d.place!.name),
-                if (d.questionAnswer.trim().isNotEmpty) row('💬', 'One answered question'),
+                if (d.questionAnswer.trim().isNotEmpty) row('💬', context.l10n.detailsOneAnsweredQuestionLabel),
                 if (d.inspirations.isEmpty && d.mood == null && d.music == null && d.place == null)
-                  Text('Nothing else added, and that is fine.', style: context.tt.bodySmall),
+                  Text(context.l10n.detailsNothingElseAddedMessage, style: context.tt.bodySmall),
               ],
             ),
           ),

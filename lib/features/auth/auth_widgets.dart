@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
+import '../../l10n/app_localizations.dart';
 import '../../shared/widgets/ui.dart';
 
 class AuthFrame extends StatelessWidget {
@@ -87,13 +88,13 @@ class Field extends StatelessWidget {
   }
 }
 
-String? validateEmail(String? v) {
+String? validateEmail(AppLocalizations l10n, String? v) {
   final s = (v ?? '').trim();
-  if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(s)) return 'Enter a valid email address';
+  if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(s)) return l10n.authInvalidEmailError;
   return null;
 }
 
-String? validatePassword(String? v) => (v ?? '').length < 8 ? 'Use at least 8 characters' : null;
+String? validatePassword(AppLocalizations l10n, String? v) => (v ?? '').length < 8 ? l10n.authPasswordTooShortError : null;
 
 class InlineError extends StatelessWidget {
   const InlineError(this.message, {super.key});

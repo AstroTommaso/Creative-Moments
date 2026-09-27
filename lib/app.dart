@@ -3,9 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/routing/router.dart';
+import 'core/services/l10n_ext.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/tokens.dart';
 import 'data/providers.dart';
+import 'l10n/app_localizations.dart';
 
 class CreativeMomentsApp extends ConsumerWidget {
   const CreativeMomentsApp({super.key});
@@ -13,11 +15,15 @@ class CreativeMomentsApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dark = ref.watch(prefsProvider.select((p) => p.darkMode));
+    final locale = ref.watch(appLocaleProvider);
     final router = ref.watch(routerProvider);
     return MaterialApp.router(
-      title: 'Creative Moments',
+      onGenerateTitle: (context) => context.l10n.appTitle,
       debugShowCheckedModeBanner: false,
       routerConfig: router,
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: AppTheme.build(CmColors.light),
       darkTheme: AppTheme.build(CmColors.dark),
       themeMode: dark ? ThemeMode.dark : ThemeMode.light,

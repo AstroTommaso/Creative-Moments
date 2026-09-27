@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/animations/sky.dart';
 import '../../core/constants/catalog.dart';
+import '../../core/services/l10n_ext.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
 import '../../data/models/moment.dart';
@@ -97,11 +98,11 @@ class MomentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.cm;
-    final when = DateFormat(compact ? 'MMM d' : 'MMM d · HH:mm').format(moment.createdAt);
+    final when = DateFormat(compact ? 'MMM d' : 'MMM d · HH:mm', Localizations.localeOf(context).toString()).format(moment.createdAt);
     final insp = moment.inspirations.take(3).map((e) => e.emoji).join(' ');
     return Semantics(
       button: true,
-      label: '${moment.displayTitle}, ${moment.type.label}, $when',
+      label: context.l10n.cardSemanticLabel(moment.displayTitle, moment.type.label(context.l10n), when),
       child: GestureDetector(
         onTap: () => context.push('/moment/${moment.id}'),
         child: Container(

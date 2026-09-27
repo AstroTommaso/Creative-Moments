@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/constants/catalog.dart';
 import '../../core/errors/app_error.dart';
+import '../../core/services/l10n_ext.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
 import '../../data/models/moment.dart';
@@ -20,14 +21,15 @@ import '../creation/draft.dart';
 
 final _momentFetchProvider = FutureProvider.family<Moment?, String>((ref, id) => ref.read(momentRepoProvider).get(id));
 
-String relativeDay(DateTime d) {
+String relativeDay(BuildContext context, DateTime d) {
+  final l10n = context.l10n;
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
   final day = DateTime(d.year, d.month, d.day);
   final diff = today.difference(day).inDays;
-  if (diff == 0) return d.hour >= 18 || d.hour < 5 ? 'Tonight' : 'Today';
-  if (diff == 1) return 'Yesterday';
-  return DateFormat('EEEE').format(d);
+  if (diff == 0) return d.hour >= 18 || d.hour < 5 ? l10n.momentDetailTonight : l10n.momentDetailToday;
+  if (diff == 1) return l10n.momentDetailYesterday;
+  return DateFormat('EEEE', Localizations.localeOf(context).toString()).format(d);
 }
 
 class MomentDetailScreen extends ConsumerWidget {
@@ -57,7 +59,7 @@ class MomentDetailScreen extends ConsumerWidget {
         }
         return AtmoScaffold(
           appBar: AppBar(),
-          body: EmptyState(title: 'Moment not found', message: 'It may have been deleted.', emoji: '🌫️', actionLabel: null),
+          body: EmptyState(title: context.l10n.momentDetailNotFoundTitle, message: context.l10n.momentDetailNotFoundMessage, emoji: '🌫️', actionLabel: null),
         );
       }
     }
@@ -93,11 +95,12 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
   }
 
   Future<void> _delete() async {
+    final l10n = context.l10n;
     final ok = await confirmDialog(
       context,
-      title: 'Delete this moment?',
-      message: 'This removes it and everything attached to it. It cannot be undone.',
-      confirmLabel: 'Delete',
+      title: l10n.momentDetailDeleteTitle,
+      message: l10n.momentDetailDeleteMessage,
+      confirmLabel: l10n.momentDetailDeleteConfirm,
       destructive: true,
     );
     if (!ok || !mounted) return;
@@ -105,9 +108,9 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
       await ref.read(momentsProvider.notifier).delete(widget.moment);
       if (!mounted) return;
       context.pop();
-      showSnack(context, 'Moment deleted.');
+      showSnack(context, l10n.momentDetailDeletedSnack);
     } catch (e) {
-      if (mounted) showSnack(context, "It couldn't be deleted. ${friendlyError(e)}");
+      if (mounted) showSnack(context, l10n.momentDetailDeleteFailedSnack(friendlyError(e)));
     }
   }
 
@@ -121,10 +124,12 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
     final m = widget.moment;
     final c = context.cm;
     final tt = context.tt;
+    final l10n = context.l10n;
+    final locale = Localizations.localeOf(context).toString();
     final drawing = m.drawing;
     final answered = m.prompts.where((p) => (p.answer ?? '').trim().isNotEmpty).toList();
-    final time = DateFormat('HH:mm').format(m.createdAt);
-    final date = DateFormat('MMMM d, y').format(m.createdAt);
+    final time = DateFormat('HH:mm', locale).format(m.createdAt);
+    final date = DateFormat('MMMM d, y', locale).format(m.createdAt);
     int i = 0;
     Widget stagger(Widget w) => FadeSlide(index: i++, child: w);
 
@@ -141,24 +146,24 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
                 surfaceTintColor: Colors.transparent,
                 leading: Padding(
                   padding: const EdgeInsets.all(6),
-                  child: _RoundBtn(icon: Icons.arrow_back_rounded, label: 'Back', onTap: () => context.pop()),
+                  child: _RoundBtn(icon: Icons.arrow_back_rounded, label: l10n.momentDetailBack, onTap: () => context.pop()),
                 ),
                 actions: [
                   Padding(
                     padding: const EdgeInsets.all(6),
                     child: PopupMenuButton<String>(
-                      tooltip: 'More',
+                      tooltip: l10n.momentDetailMoreTooltip,
                       color: c.surfaceHigh,
                       icon: const _RoundIcon(icon: Icons.more_horiz_rounded),
                       onSelected: (v) => v == 'edit' ? _edit() : _delete(),
                       itemBuilder: (_) => [
                         PopupMenuItem(
                           value: 'edit',
-                          child: Text('Edit', style: AppType.ui(14, color: c.text)),
+                          child: Text(l10n.momentDetailEditAction, style: AppType.ui(14, color: c.text)),
                         ),
                         PopupMenuItem(
                           value: 'delete',
-                          child: Text('Delete', style: AppType.ui(14, color: c.danger)),
+                          child: Text(l10n.momentDetailDeleteAction, style: AppType.ui(14, color: c.danger)),
                         ),
                       ],
                     ),
@@ -181,7 +186,7 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      stagger(Text(relativeDay(m.createdAt), style: AppType.display(54, color: c.text, height: 1))),
+                      stagger(Text(relativeDay(context, m.createdAt), style: AppType.display(54, color: c.text, height: 1))),
                       stagger(
                         Padding(
                           padding: const EdgeInsets.only(top: Sp.sm),
@@ -195,8 +200,8 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
                             spacing: Sp.sm,
                             runSpacing: Sp.sm,
                             children: [
-                              if (m.timeOfDay != null) _Chip('${emojiFor(timeOptions, m.timeOfDay)} ${labelFor(timeOptions, m.timeOfDay)}'),
-                              _Chip('${m.type.emoji} ${m.type.label}'),
+                              if (m.timeOfDay != null) _Chip('${emojiFor(timeOptions, m.timeOfDay)} ${labelFor(l10n, timeOptions, m.timeOfDay)}'),
+                              _Chip('${m.type.emoji} ${m.type.label(l10n)}'),
                               if (m.hasMusic) _Chip('🎧 ${m.musicTitle}'),
                               if (m.hasLocation) _Chip('📍 ${m.locationName}'),
                             ],
@@ -210,7 +215,7 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('INSPIRED BY', style: tt.labelSmall),
+                                Text(l10n.momentDetailInspiredBy.toUpperCase(), style: tt.labelSmall),
                                 const SizedBox(height: Sp.sm),
                                 Text(m.inspirations.map((e) => e.name).join(' · '), style: AppType.display(26, color: c.text)),
                               ],
@@ -229,9 +234,9 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
                                   decoration: BoxDecoration(shape: BoxShape.circle, color: moodColor(m.mood)),
                                 ),
                                 const SizedBox(width: Sp.sm),
-                                Text('Mood  ', style: tt.labelSmall),
+                                Text('${l10n.momentDetailMoodLabel}  ', style: tt.labelSmall),
                                 Text(
-                                  labelFor(moodOptions, m.mood),
+                                  labelFor(l10n, moodOptions, m.mood),
                                   style: AppType.ui(15, weight: FontWeight.w700, color: c.text),
                                 ),
                               ],
@@ -298,7 +303,7 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
                           ),
                         ),
                       if (m.updatedAt.difference(m.createdAt).inMinutes > 5)
-                        Text('Edited ${DateFormat('MMM d, HH:mm').format(m.updatedAt)}', style: tt.bodySmall),
+                        Text(l10n.momentDetailEditedAt(DateFormat('MMM d, HH:mm', locale).format(m.updatedAt)), style: tt.bodySmall),
                     ],
                   ),
                 ),
@@ -318,7 +323,7 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
                     radius: 999,
                     padding: const EdgeInsets.symmetric(horizontal: Sp.lg, vertical: Sp.sm),
                     child: Text(
-                      '✦  Kept in your world',
+                      context.l10n.momentDetailKeptBanner,
                       style: AppType.ui(13, weight: FontWeight.w700, color: Colors.white),
                     ),
                   ),

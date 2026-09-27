@@ -11,11 +11,14 @@ class UserPreferences {
     this.locationEnabled = false,
     this.weatherEnabled = false,
     this.onboarded = false,
+    this.language = 'system',
   });
 
   final List<String> environments, preferredInspirations;
   final String environment, atmosphere, timeStyle, visualDensity;
   final bool darkMode, reduceMotion, locationEnabled, weatherEnabled, onboarded;
+  /// `'system'` (follow the device), `'it'` or `'en'`.
+  final String language;
 
   UserPreferences copyWith({
     List<String>? environments,
@@ -29,6 +32,7 @@ class UserPreferences {
     bool? locationEnabled,
     bool? weatherEnabled,
     bool? onboarded,
+    String? language,
   }) => UserPreferences(
     environments: environments ?? this.environments,
     environment: environment ?? this.environment,
@@ -41,6 +45,7 @@ class UserPreferences {
     locationEnabled: locationEnabled ?? this.locationEnabled,
     weatherEnabled: weatherEnabled ?? this.weatherEnabled,
     onboarded: onboarded ?? this.onboarded,
+    language: language ?? this.language,
   );
 
   factory UserPreferences.fromJson(Map<String, dynamic> j) {
@@ -58,6 +63,7 @@ class UserPreferences {
       locationEnabled: (j['locationEnabled'] as bool?) ?? false,
       weatherEnabled: (j['weatherEnabled'] as bool?) ?? false,
       onboarded: (j['onboarded'] as bool?) ?? false,
+      language: (j['language'] as String?) ?? d.language,
     );
   }
 
@@ -73,6 +79,7 @@ class UserPreferences {
     'locationEnabled': locationEnabled,
     'weatherEnabled': weatherEnabled,
     'onboarded': onboarded,
+    'language': language,
   };
 
   /// All active scene environments, primary first, without duplicates.

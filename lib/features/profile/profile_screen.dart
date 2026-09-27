@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../core/constants/catalog.dart';
 import '../../core/errors/app_error.dart';
+import '../../core/services/l10n_ext.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
 import '../../data/insights.dart';
@@ -31,17 +32,17 @@ class ProfileScreen extends ConsumerWidget {
     final name = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Your name', style: ctx.tt.headlineSmall),
+        title: Text(ctx.l10n.profileYourNameTitle, style: ctx.tt.headlineSmall),
         content: TextField(
           controller: ctl,
           autofocus: true,
           maxLength: 60,
           textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(hintText: 'Name'),
+          decoration: InputDecoration(hintText: ctx.l10n.profileNameHint),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(ctx, ctl.text), child: const Text('Save')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(ctx.l10n.profileCancel)),
+          TextButton(onPressed: () => Navigator.pop(ctx, ctl.text), child: Text(ctx.l10n.profileSave)),
         ],
       ),
     );
@@ -129,12 +130,12 @@ class ProfileScreen extends ConsumerWidget {
           children: [
             Align(
               alignment: Alignment.centerRight,
-              child: IconButton(tooltip: 'Settings', onPressed: () => context.push('/settings'), icon: const Icon(Icons.settings_outlined)),
+              child: IconButton(tooltip: context.l10n.profileSettingsTooltip, onPressed: () => context.push('/settings'), icon: const Icon(Icons.settings_outlined)),
             ),
             Center(
               child: Semantics(
                 button: true,
-                label: 'Change profile photo',
+                label: context.l10n.profileChangePhotoLabel,
                 child: GestureDetector(
                   onTap: () => _pickAvatar(context, ref),
                   child: Container(
@@ -160,7 +161,7 @@ class ProfileScreen extends ConsumerWidget {
             Center(
               child: GestureDetector(
                 onTap: () => _rename(context, ref, name),
-                child: Text(name.isEmpty ? 'Add your name' : name, style: AppType.display(38, color: c.text)),
+                child: Text(name.isEmpty ? context.l10n.profileAddYourName : name, style: AppType.display(38, color: c.text)),
               ),
             ),
             Center(child: Text(user?.email ?? '', style: context.tt.bodySmall)),
@@ -171,7 +172,7 @@ class ProfileScreen extends ConsumerWidget {
                 children: [
                   Text('${ins.total}', style: AppType.display(44, color: c.accent)),
                   const SizedBox(width: Sp.md),
-                  Text(ins.total == 1 ? 'moment\nkept' : 'moments\nkept', style: context.tt.bodyMedium),
+                  Text(ins.total == 1 ? context.l10n.profileMomentsKeptSingular : context.l10n.profileMomentsKeptPlural, style: context.tt.bodyMedium),
                 ],
               ),
             ),
@@ -179,15 +180,23 @@ class ProfileScreen extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(top: Sp.xl),
                 child: Center(
-                  child: Text('As you create, your patterns appear here.', style: context.tt.bodyMedium?.copyWith(color: c.muted)),
+                  child: Text(context.l10n.profileEmptyPatterns, style: context.tt.bodyMedium?.copyWith(color: c.muted)),
                 ),
               )
             else ...[
-              section('What you make', ins.types, (k) => '${CreationType.parse(k).emoji} ${CreationType.parse(k).label}'),
-              section('Recurring inspirations', ins.inspirations, (k) => '${emojiFor(inspirationOptions, k)} ${labelFor(inspirationOptions, k)}'),
-              section('Recurring moods', ins.moods, (k) => labelFor(moodOptions, k)),
-              section('Atmospheres', ins.atmospheres, (k) => '${emojiFor(atmosphereOptions, k)} ${labelFor(atmosphereOptions, k)}'),
-              section('Creative places', ins.places, (k) => '📍 $k'),
+              section(context.l10n.profileSectionWhatYouMake, ins.types, (k) => '${CreationType.parse(k).emoji} ${CreationType.parse(k).label(context.l10n)}'),
+              section(
+                context.l10n.profileSectionRecurringInspirations,
+                ins.inspirations,
+                (k) => '${emojiFor(inspirationOptions, k)} ${labelFor(context.l10n, inspirationOptions, k)}',
+              ),
+              section(context.l10n.profileSectionRecurringMoods, ins.moods, (k) => labelFor(context.l10n, moodOptions, k)),
+              section(
+                context.l10n.profileSectionAtmospheres,
+                ins.atmospheres,
+                (k) => '${emojiFor(atmosphereOptions, k)} ${labelFor(context.l10n, atmosphereOptions, k)}',
+              ),
+              section(context.l10n.profileSectionCreativePlaces, ins.places, (k) => '📍 $k'),
             ],
           ],
         ),

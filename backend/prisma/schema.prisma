@@ -62,6 +62,8 @@ model UserPreferences {
   locationEnabled      Boolean  @default(false)
   weatherEnabled       Boolean  @default(false)
   onboarded            Boolean  @default(false)
+  /// `"system"` (follow the device), `"it"` or `"en"`.
+  language             String   @default("system")
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 }

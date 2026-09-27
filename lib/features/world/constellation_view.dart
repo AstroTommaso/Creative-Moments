@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/constants/catalog.dart';
+import '../../core/services/l10n_ext.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
 import '../../data/models/moment.dart';
@@ -105,6 +106,7 @@ class _ConstellationViewState extends State<ConstellationView> with SingleTicker
   @override
   Widget build(BuildContext context) {
     final c = context.cm;
+    final l10n = context.l10n;
     final moods = <String>{
       for (final m in widget.moments)
         if (m.mood != null) m.mood!,
@@ -112,9 +114,9 @@ class _ConstellationViewState extends State<ConstellationView> with SingleTicker
     final insps = <String>{for (final m in widget.moments) ...m.inspirationTypes};
     final types = <String>{for (final m in widget.moments) m.type.name};
     final chips = <(String, String)>[
-      for (final v in insps) ('insp:$v', '${emojiFor(inspirationOptions, v)} ${labelFor(inspirationOptions, v)}'),
-      for (final v in moods) ('mood:$v', labelFor(moodOptions, v)),
-      for (final v in types) ('type:$v', CreationType.parse(v).label),
+      for (final v in insps) ('insp:$v', '${emojiFor(inspirationOptions, v)} ${labelFor(l10n, inspirationOptions, v)}'),
+      for (final v in moods) ('mood:$v', labelFor(l10n, moodOptions, v)),
+      for (final v in types) ('type:$v', CreationType.parse(v).label(l10n)),
     ];
     final sel = _selected == null ? null : _layout.nodes[_selected!].moment;
     return Column(
@@ -153,7 +155,7 @@ class _ConstellationViewState extends State<ConstellationView> with SingleTicker
                           width: _layout.size.width,
                           height: _layout.size.height,
                           child: Semantics(
-                            label: 'Creative constellation with ${_layout.nodes.length} moments. Pinch to zoom, tap a star to preview.',
+                            label: l10n.constellationSemanticsLabel(_layout.nodes.length),
                             child: CustomPaint(painter: _ConstellationPainter(_layout, _matches, _selected, _twinkle)),
                           ),
                         ),
@@ -177,14 +179,14 @@ class _ConstellationViewState extends State<ConstellationView> with SingleTicker
                           ? Center(
                               key: const ValueKey('hint'),
                               child: Text(
-                                widget.moments.length < 2 ? 'Every moment you keep becomes a star.' : 'Pinch to explore. Tap a star to revisit it.',
+                                widget.moments.length < 2 ? l10n.constellationHintSingle : l10n.constellationHintMulti,
                                 style: context.tt.bodySmall,
                               ),
                             )
                           : Glass(
                               key: ValueKey(sel.id),
                               onTap: () => context.push('/moment/${sel.id}'),
-                              semanticLabel: 'Open ${sel.displayTitle}',
+                              semanticLabel: l10n.constellationOpenLabel(sel.displayTitle),
                               child: Row(
                                 children: [
                                   Container(
@@ -208,7 +210,7 @@ class _ConstellationViewState extends State<ConstellationView> with SingleTicker
                                           style: AppType.display(22, weight: FontWeight.w700, color: c.text),
                                         ),
                                         Text(
-                                          '${sel.type.emoji} ${DateFormat('MMM d').format(sel.createdAt)}  ${sel.inspirations.take(3).map((e) => e.emoji).join(' ')}',
+                                          '${sel.type.emoji} ${DateFormat('MMM d', Localizations.localeOf(context).toString()).format(sel.createdAt)}  ${sel.inspirations.take(3).map((e) => e.emoji).join(' ')}',
                                           style: context.tt.bodySmall,
                                         ),
                                       ],

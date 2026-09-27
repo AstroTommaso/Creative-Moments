@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/services/l10n_ext.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
 import '../../data/providers.dart';
@@ -337,12 +338,14 @@ class _SkeletonState extends ConsumerState<Skeleton> with SingleTickerProviderSt
 }
 
 class ErrorState extends StatelessWidget {
-  const ErrorState({super.key, this.title = 'Something went wrong.', required this.message, required this.onRetry});
-  final String title, message;
+  const ErrorState({super.key, this.title, required this.message, required this.onRetry});
+  final String? title;
+  final String message;
   final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
+    final resolvedTitle = title ?? context.l10n.uiErrorGeneric;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(Sp.xxl),
@@ -351,7 +354,7 @@ class ErrorState extends StatelessWidget {
           children: [
             const Text('🌫️', style: TextStyle(fontSize: 40)),
             const SizedBox(height: Sp.md),
-            Text(title, style: context.tt.headlineSmall, textAlign: TextAlign.center),
+            Text(resolvedTitle, style: context.tt.headlineSmall, textAlign: TextAlign.center),
             const SizedBox(height: Sp.sm),
             Text(
               message,
@@ -359,7 +362,7 @@ class ErrorState extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: Sp.xl),
-            PrimaryButton(label: 'Try Again', onPressed: onRetry, expand: false),
+            PrimaryButton(label: context.l10n.tryAgain, onPressed: onRetry, expand: false),
           ],
         ),
       ),
@@ -415,10 +418,11 @@ Future<bool> confirmDialog(
   BuildContext context, {
   required String title,
   required String message,
-  String confirmLabel = 'Confirm',
+  String? confirmLabel,
   bool destructive = false,
 }) async {
   final c = context.cm;
+  final resolvedConfirmLabel = confirmLabel ?? context.l10n.uiConfirm;
   final r = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
@@ -428,14 +432,14 @@ Future<bool> confirmDialog(
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
           child: Text(
-            'Cancel',
+            ctx.l10n.uiCancel,
             style: AppType.ui(15, weight: FontWeight.w700, color: c.muted),
           ),
         ),
         TextButton(
           onPressed: () => Navigator.pop(ctx, true),
           child: Text(
-            confirmLabel,
+            resolvedConfirmLabel,
             style: AppType.ui(15, weight: FontWeight.w800, color: destructive ? c.danger : c.accent),
           ),
         ),

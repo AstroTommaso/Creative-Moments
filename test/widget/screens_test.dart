@@ -12,6 +12,8 @@ import 'package:creative_moments/features/creation/draft.dart';
 import 'package:creative_moments/features/creation/editor_screen.dart';
 import 'package:creative_moments/features/home/home_screen.dart';
 import 'package:creative_moments/features/moments/moment_detail_screen.dart';
+import 'package:creative_moments/l10n/app_localizations.dart';
+import 'package:creative_moments/l10n/app_localizations_en.dart';
 import 'package:creative_moments/shared/widgets/ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,6 +24,9 @@ import '../support/harness.dart';
 
 /// Mounts a single screen (real theme, fake data, real GoRouter) on top of a
 /// blank home route so push/pop behave exactly as in the app.
+/// Tests run in English; matches whatever `pumpScreen`/`pumpApp` render.
+final _en = AppLocalizationsEn();
+
 Future<ProviderContainer> pumpScreen(
   WidgetTester tester,
   FakeBackend backend,
@@ -62,6 +67,8 @@ Future<ProviderContainer> pumpScreen(
         theme: AppTheme.build(CmColors.dark),
         darkTheme: AppTheme.build(CmColors.dark),
         themeMode: ThemeMode.dark,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
       ),
     ),
   );
@@ -92,7 +99,7 @@ void main() {
       // The exact wording depends on the real time of day (see promptForHour);
       // check for whatever it actually is right now instead of a substring
       // that only some of its variants contain.
-      expect(find.text(promptForHour(DateTime.now().hour)), findsOneWidget);
+      expect(find.text(promptForHour(_en, DateTime.now().hour)), findsOneWidget);
       expect(find.text('Your recent moments'), findsOneWidget);
     });
 
@@ -143,7 +150,7 @@ void main() {
     testWidgets('offers every creation type plus "I don\'t know yet"', (tester) async {
       await pumpScreen(tester, signedInBackend(), const CreateTypeScreen());
       for (final t in CreationType.selectable) {
-        expect(find.text(t.label), findsOneWidget, reason: t.label);
+        expect(find.text(t.label(_en)), findsOneWidget, reason: t.label(_en));
       }
       expect(find.text('What are you\ncreating?'), findsOneWidget);
       expect(find.text("I don't know yet"), findsOneWidget);
@@ -311,7 +318,7 @@ void main() {
       await details(tester);
       expect(find.textContaining('inspiring'), findsOneWidget);
       for (final o in inspirationOptions) {
-        expect(find.text(o.label), findsOneWidget, reason: o.label);
+        expect(find.text(o.label(_en)), findsOneWidget, reason: o.label(_en));
       }
       await flush(tester);
     });
@@ -346,7 +353,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('How does this\nmoment feel?'), findsOneWidget);
       for (final o in moodOptions) {
-        expect(find.text(o.label), findsOneWidget, reason: o.label);
+        expect(find.text(o.label(_en)), findsOneWidget, reason: o.label(_en));
       }
       await tapVisible(tester, find.text('Other'));
       await tester.pumpAndSettle();
@@ -479,9 +486,9 @@ void main() {
     testWidgets('touch targets are at least 48 logical pixels', (tester) async {
       await pumpScreen(tester, signedInBackend(), const CreateTypeScreen());
       for (final t in CreationType.selectable) {
-        final size = tester.getSize(find.ancestor(of: find.text(t.label), matching: find.byType(Glass)).first);
-        expect(size.height, greaterThanOrEqualTo(48), reason: t.label);
-        expect(size.width, greaterThanOrEqualTo(48), reason: t.label);
+        final size = tester.getSize(find.ancestor(of: find.text(t.label(_en)), matching: find.byType(Glass)).first);
+        expect(size.height, greaterThanOrEqualTo(48), reason: t.label(_en));
+        expect(size.width, greaterThanOrEqualTo(48), reason: t.label(_en));
       }
     });
   });

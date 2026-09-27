@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/errors/app_error.dart';
+import '../../core/services/l10n_ext.dart';
 import '../../core/theme/typography.dart';
 import '../../data/providers.dart';
 import '../widgets/ui.dart';
@@ -19,7 +20,7 @@ class SplashScreen extends ConsumerWidget {
         child: prefs.hasError && !prefs.hasValue
             ? ErrorState(message: friendlyError(prefs.error!), onRetry: () => ref.invalidate(preferencesProvider))
             : Text(
-                'Creative\nMoments',
+                context.l10n.appBrandName,
                 textAlign: TextAlign.center,
                 style: AppType.display(48, color: Colors.white, height: 1),
               ),

@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/services/api_client.dart';
@@ -60,6 +61,19 @@ final preferencesProvider = AsyncNotifierProvider<PreferencesNotifier, UserPrefe
 
 /// Non-null view for widgets that just need to paint.
 final prefsProvider = Provider<UserPreferences>((ref) => ref.watch(preferencesProvider).value ?? const UserPreferences());
+
+/// `null` means "follow the device locale"; otherwise the explicit choice
+/// saved in [UserPreferences.language].
+final appLocaleProvider = Provider<Locale?>((ref) {
+  switch (ref.watch(prefsProvider).language) {
+    case 'it':
+      return const Locale('it');
+    case 'en':
+      return const Locale('en');
+    default:
+      return null;
+  }
+});
 
 // ── profile ─────────────────────────────────────────────────────────────
 class ProfileNotifier extends AsyncNotifier<Profile?> {

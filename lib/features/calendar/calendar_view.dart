@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/constants/catalog.dart';
+import '../../core/services/l10n_ext.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
 import '../../data/models/moment.dart';
@@ -34,6 +35,8 @@ class _CalendarViewState extends State<CalendarView> {
   @override
   Widget build(BuildContext context) {
     final c = context.cm;
+    final l10n = context.l10n;
+    final locale = Localizations.localeOf(context).toString();
     final byDay = _byDay();
     final first = DateTime(_month.year, _month.month, 1);
     final days = DateUtils.getDaysInMonth(_month.year, _month.month);
@@ -41,31 +44,32 @@ class _CalendarViewState extends State<CalendarView> {
     final now = DateTime.now();
     final total = byDay.values.fold<int>(0, (a, b) => a + b.length);
     final canNext = _month.isBefore(DateTime(now.year, now.month));
+    final weekdays = [l10n.weekdayMon, l10n.weekdayTue, l10n.weekdayWed, l10n.weekdayThu, l10n.weekdayFri, l10n.weekdaySat, l10n.weekdaySun];
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(Sp.lg, 0, Sp.lg, 140),
       child: Column(
         children: [
           Row(
             children: [
-              IconButton(tooltip: 'Previous month', onPressed: () => _shift(-1), icon: const Icon(Icons.chevron_left_rounded)),
+              IconButton(tooltip: l10n.calendarPrevMonthTooltip, onPressed: () => _shift(-1), icon: const Icon(Icons.chevron_left_rounded)),
               Expanded(
                 child: Column(
                   children: [
                     Text(
-                      DateFormat('MMMM y').format(_month),
+                      DateFormat('MMMM y', locale).format(_month),
                       style: AppType.display(28, weight: FontWeight.w700, color: c.text),
                     ),
-                    Text(total == 0 ? 'Nothing this month' : '$total moment${total == 1 ? '' : 's'}', style: context.tt.bodySmall),
+                    Text(total == 0 ? l10n.calendarNothingThisMonth : l10n.calendarMonthMomentsCount(total), style: context.tt.bodySmall),
                   ],
                 ),
               ),
-              IconButton(tooltip: 'Next month', onPressed: canNext ? () => _shift(1) : null, icon: const Icon(Icons.chevron_right_rounded)),
+              IconButton(tooltip: l10n.calendarNextMonthTooltip, onPressed: canNext ? () => _shift(1) : null, icon: const Icon(Icons.chevron_right_rounded)),
             ],
           ),
           const SizedBox(height: Sp.md),
           Row(
             children: [
-              for (final d in const ['M', 'T', 'W', 'T', 'F', 'S', 'S'])
+              for (final d in weekdays)
                 Expanded(
                   child: Center(child: Text(d, style: context.tt.labelSmall)),
                 ),
@@ -90,8 +94,8 @@ class _CalendarViewState extends State<CalendarView> {
                       ? null
                       : () => showMomentsSheet(
                           context,
-                          title: DateFormat('EEEE, MMMM d').format(DateTime(_month.year, _month.month, day)),
-                          subtitle: '${byDay[day]!.length} moment${byDay[day]!.length == 1 ? '' : 's'}',
+                          title: DateFormat('EEEE, MMMM d', locale).format(DateTime(_month.year, _month.month, day)),
+                          subtitle: l10n.calendarDayMomentsCount(byDay[day]!.length),
                           moments: byDay[day]!,
                         ),
                 ),
@@ -117,7 +121,7 @@ class _DayCell extends StatelessWidget {
     final col = has ? moodColor(moments.first.mood) : c.muted;
     return Semantics(
       button: has,
-      label: has ? '$day, ${moments.length} moment${moments.length == 1 ? '' : 's'}' : '$day',
+      label: has ? '$day, ${context.l10n.calendarDayMomentsCount(moments.length)}' : '$day',
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedContainer(

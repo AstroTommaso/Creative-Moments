@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/errors/app_error.dart';
+import '../../core/services/l10n_ext.dart';
 import '../../core/theme/tokens.dart';
 import '../../data/models/moment.dart';
 import '../../data/providers.dart';
@@ -25,6 +26,7 @@ class _MomentsScreenState extends ConsumerState<MomentsScreen> {
   Widget build(BuildContext context) {
     final moments = ref.watch(momentsProvider);
     final c = context.cm;
+    final l10n = context.l10n;
     return AtmoScaffold(
       intensity: 0.28,
       body: SafeArea(
@@ -32,8 +34,8 @@ class _MomentsScreenState extends ConsumerState<MomentsScreen> {
         child: Column(
           children: [
             ScreenTitle(
-              'Moments',
-              subtitle: moments.value == null ? null : '${moments.value!.length} kept',
+              l10n.momentsTitle,
+              subtitle: moments.value == null ? null : l10n.momentsKeptCount(moments.value!.length),
               trailing: Container(
                 decoration: BoxDecoration(
                   borderRadius: Rd.pill,
@@ -43,8 +45,8 @@ class _MomentsScreenState extends ConsumerState<MomentsScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _Seg(icon: Icons.view_agenda_outlined, label: 'Timeline', on: !_calendar, onTap: () => setState(() => _calendar = false)),
-                    _Seg(icon: Icons.calendar_month_outlined, label: 'Calendar', on: _calendar, onTap: () => setState(() => _calendar = true)),
+                    _Seg(icon: Icons.view_agenda_outlined, label: l10n.momentsTimelineTab, on: !_calendar, onTap: () => setState(() => _calendar = false)),
+                    _Seg(icon: Icons.calendar_month_outlined, label: l10n.momentsCalendarTab, on: _calendar, onTap: () => setState(() => _calendar = true)),
                   ],
                 ),
               ),
@@ -65,9 +67,9 @@ class _MomentsScreenState extends ConsumerState<MomentsScreen> {
                 data: (list) {
                   if (list.isEmpty) {
                     return EmptyState(
-                      title: 'Your story starts here.',
-                      message: 'Create something worth remembering.',
-                      actionLabel: 'Create a Moment',
+                      title: l10n.momentsEmptyTitle,
+                      message: l10n.momentsEmptyMessage,
+                      actionLabel: l10n.createMomentCta,
                       onAction: () => context.push('/create'),
                     );
                   }
@@ -120,8 +122,9 @@ class _Timeline extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // group by month
     final groups = <String, List<Moment>>{};
+    final locale = Localizations.localeOf(context).toString();
     for (final m in moments) {
-      groups.putIfAbsent(DateFormat('MMMM y').format(m.createdAt), () => []).add(m);
+      groups.putIfAbsent(DateFormat('MMMM y', locale).format(m.createdAt), () => []).add(m);
     }
     final c = context.cm;
     return RefreshIndicator(

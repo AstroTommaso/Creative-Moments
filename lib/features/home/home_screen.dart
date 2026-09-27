@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/constants/catalog.dart';
 import '../../core/errors/app_error.dart';
+import '../../core/services/l10n_ext.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
 import '../../data/models/moment.dart';
@@ -96,17 +97,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           Semantics(
                             header: true,
                             child: Text(
-                              name.isEmpty ? greetingForHour(hour) : greetingForHour(hour).replaceAll('.', ', $name.'),
+                              greetingForHour(context.l10n, hour, name: name),
                               style: AppType.display(52, color: white, height: 1.0, weight: FontWeight.w500),
                             ),
                           ),
                           const SizedBox(height: Sp.md),
                           Text(
-                            promptForHour(hour),
+                            promptForHour(context.l10n, hour),
                             style: AppType.display(26, color: white.withValues(alpha: 0.9), style: FontStyle.italic, height: 1.15),
                           ),
                           const SizedBox(height: Sp.xl),
-                          PrimaryButton(label: 'Create a Moment', icon: Icons.add_rounded, expand: false, onPressed: () => context.push('/create')),
+                          PrimaryButton(label: context.l10n.createMomentCta, icon: Icons.add_rounded, expand: false, onPressed: () => context.push('/create')),
                         ],
                       ),
                     ),
@@ -116,7 +117,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(Sp.xl, Sp.xxl + Sp.lg, Sp.xl, Sp.md),
                     child: Text(
-                      'Your recent moments',
+                      context.l10n.homeRecentMomentsHeader,
                       style: AppType.ui(13, weight: FontWeight.w800, color: white.withValues(alpha: 0.75), letterSpacing: 1.2),
                     ),
                   ),
@@ -145,7 +146,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             Expanded(
                               child: Text(friendlyError(e), style: AppType.ui(14, color: white)),
                             ),
-                            TextButton(onPressed: () => ref.read(momentsProvider.notifier).refresh(), child: const Text('Try Again')),
+                            TextButton(onPressed: () => ref.read(momentsProvider.notifier).refresh(), child: Text(context.l10n.tryAgain)),
                           ],
                         ),
                       ),
@@ -159,11 +160,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Your story starts here.', style: AppType.display(32, color: white, height: 1.05)),
+                                Text(context.l10n.homeEmptyStateTitle, style: AppType.display(32, color: white, height: 1.05)),
                                 const SizedBox(height: Sp.sm),
-                                Text('Create something worth remembering.', style: AppType.ui(15, color: white.withValues(alpha: 0.8))),
+                                Text(context.l10n.homeEmptyStateSubtitle, style: AppType.ui(15, color: white.withValues(alpha: 0.8))),
                                 const SizedBox(height: Sp.lg),
-                                GhostButton(label: 'Create a Moment', icon: Icons.add_rounded, color: white, onPressed: () => context.push('/create')),
+                                GhostButton(label: context.l10n.createMomentCta, icon: Icons.add_rounded, color: white, onPressed: () => context.push('/create')),
                               ],
                             ),
                           ),
@@ -211,7 +212,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: Glass(
                   radius: 999,
                   padding: const EdgeInsets.symmetric(horizontal: Sp.lg, vertical: Sp.sm),
-                  semanticLabel: 'Customize your world',
+                  semanticLabel: context.l10n.homeCustomizeSemanticLabel,
                   onTap: () => context.push('/customize'),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -219,7 +220,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       const Icon(Icons.tune_rounded, size: 18, color: Colors.white),
                       const SizedBox(width: Sp.sm),
                       Text(
-                        'Customize',
+                        context.l10n.homeCustomizeLabel,
                         style: AppType.ui(13, weight: FontWeight.w700, color: Colors.white),
                       ),
                     ],
@@ -325,7 +326,7 @@ class _StarFieldState extends ConsumerState<_StarField> with TickerProviderState
                         height: 48,
                         child: Semantics(
                           button: true,
-                          label: 'Open moment: ${m.displayTitle}',
+                          label: context.l10n.homeOpenMomentSemanticLabel(m.displayTitle),
                           child: GestureDetector(behavior: HitTestBehavior.translucent, onTap: () => context.push('/moment/${m.id}')),
                         ),
                       ),

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/constants/catalog.dart';
 import '../../core/errors/app_error.dart';
+import '../../core/services/l10n_ext.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
 import '../../data/models/preferences.dart';
@@ -38,7 +39,9 @@ class CustomizeScreen extends ConsumerWidget {
         Wrap(
           spacing: Sp.sm,
           runSpacing: Sp.sm,
-          children: [for (final o in opts) OptionTile(emoji: o.emoji, label: o.label, selected: selected(o.id), onTap: () => onTap(o.id))],
+          children: [
+            for (final o in opts) OptionTile(emoji: o.emoji, label: o.label(context.l10n), selected: selected(o.id), onTap: () => onTap(o.id)),
+          ],
         ),
       ],
     );
@@ -57,7 +60,7 @@ class CustomizeScreen extends ConsumerWidget {
                   radius: 999,
                   padding: EdgeInsets.zero,
                   child: IconButton(
-                    tooltip: 'Done',
+                    tooltip: context.l10n.customizeDoneTooltip,
                     icon: const Icon(Icons.close_rounded, color: Colors.white),
                     onPressed: () => context.pop(),
                   ),
@@ -87,9 +90,9 @@ class CustomizeScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: Sp.lg),
-                    Text('Customize', style: AppType.display(34, color: c.text)),
-                    Text('Tap to change your world. Pull this panel down to see all of it.', style: context.tt.bodySmall),
-                    group('Environment', environmentOptions, (id) => p.environments.contains(id), (id) {
+                    Text(context.l10n.customizeTitle, style: AppType.display(34, color: c.text)),
+                    Text(context.l10n.customizeSubtitle, style: context.tt.bodySmall),
+                    group(context.l10n.customizeGroupEnvironment, environmentOptions, (id) => p.environments.contains(id), (id) {
                       _edit(context, ref, (q) {
                         final list = [...q.environments];
                         list.contains(id) ? list.remove(id) : list.add(id);
@@ -99,11 +102,24 @@ class CustomizeScreen extends ConsumerWidget {
                     if (p.environments.length > 1)
                       Padding(
                         padding: const EdgeInsets.only(top: Sp.sm),
-                        child: Text('${labelFor(environmentOptions, p.environments.first)} leads; the rest blend in.', style: context.tt.bodySmall),
+                        child: Text(
+                          context.l10n.customizeEnvironmentHint(labelFor(context.l10n, environmentOptions, p.environments.first)),
+                          style: context.tt.bodySmall,
+                        ),
                       ),
-                    group('Time', timeOptions, (id) => p.timeStyle == id, (id) => _edit(context, ref, (q) => q.copyWith(timeStyle: id))),
-                    group('Atmosphere', atmosphereOptions, (id) => p.atmosphere == id, (id) => _edit(context, ref, (q) => q.copyWith(atmosphere: id))),
-                    group('Visual density', densityOptions, (id) => p.visualDensity == id, (id) => _edit(context, ref, (q) => q.copyWith(visualDensity: id))),
+                    group(context.l10n.customizeGroupTime, timeOptions, (id) => p.timeStyle == id, (id) => _edit(context, ref, (q) => q.copyWith(timeStyle: id))),
+                    group(
+                      context.l10n.customizeGroupAtmosphere,
+                      atmosphereOptions,
+                      (id) => p.atmosphere == id,
+                      (id) => _edit(context, ref, (q) => q.copyWith(atmosphere: id)),
+                    ),
+                    group(
+                      context.l10n.customizeGroupDensity,
+                      densityOptions,
+                      (id) => p.visualDensity == id,
+                      (id) => _edit(context, ref, (q) => q.copyWith(visualDensity: id)),
+                    ),
                   ],
                 ),
               ),

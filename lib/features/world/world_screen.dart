@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/constants/catalog.dart';
 import '../../core/errors/app_error.dart';
+import '../../core/services/l10n_ext.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
 import '../../data/models/moment.dart';
@@ -26,6 +27,7 @@ class _WorldScreenState extends ConsumerState<WorldScreen> {
     final moments = ref.watch(momentsProvider);
     final reduce = ref.watch(prefsProvider).reduceMotion;
     final c = context.cm;
+    final l10n = context.l10n;
     return AtmoScaffold(
       intensity: 0.5,
       body: SafeArea(
@@ -33,8 +35,8 @@ class _WorldScreenState extends ConsumerState<WorldScreen> {
         child: Column(
           children: [
             ScreenTitle(
-              'My World',
-              subtitle: _explore ? 'Everything that keeps returning' : 'Your creative constellation',
+              l10n.worldTitle,
+              subtitle: _explore ? l10n.worldSubtitleExplore : l10n.worldSubtitleConstellation,
               trailing: Container(
                 decoration: BoxDecoration(
                   borderRadius: Rd.pill,
@@ -44,8 +46,8 @@ class _WorldScreenState extends ConsumerState<WorldScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _Seg(icon: Icons.blur_on_rounded, label: 'Constellation', on: !_explore, onTap: () => setState(() => _explore = false)),
-                    _Seg(icon: Icons.explore_outlined, label: 'Explore', on: _explore, onTap: () => setState(() => _explore = true)),
+                    _Seg(icon: Icons.blur_on_rounded, label: l10n.worldConstellationTab, on: !_explore, onTap: () => setState(() => _explore = false)),
+                    _Seg(icon: Icons.explore_outlined, label: l10n.worldExploreTab, on: _explore, onTap: () => setState(() => _explore = true)),
                   ],
                 ),
               ),
@@ -56,10 +58,10 @@ class _WorldScreenState extends ConsumerState<WorldScreen> {
                 error: (e, _) => ErrorState(message: friendlyError(e), onRetry: () => ref.read(momentsProvider.notifier).refresh()),
                 data: (list) => list.isEmpty
                     ? EmptyState(
-                        title: 'Your world is waiting.',
-                        message: 'Each moment you keep becomes a star, and stars find each other.',
+                        title: l10n.worldEmptyTitle,
+                        message: l10n.worldEmptyMessage,
                         emoji: '🌌',
-                        actionLabel: 'Create a Moment',
+                        actionLabel: l10n.createMomentCta,
                         onAction: () => context.push('/create'),
                       )
                     : (_explore ? ExploreView(moments: list) : ConstellationView(moments: list, reduceMotion: reduce)),
@@ -106,6 +108,7 @@ class ExploreView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     Map<String, List<Moment>> group(Iterable<String> Function(Moment) keys) {
       final out = <String, List<Moment>>{};
       for (final m in moments) {
@@ -117,11 +120,11 @@ class ExploreView extends StatelessWidget {
     }
 
     final sections = <(String, Map<String, List<Moment>>, String Function(String))>[
-      ('Inspirations', group((m) => m.inspirationTypes), (k) => '${emojiFor(inspirationOptions, k)} ${labelFor(inspirationOptions, k)}'),
-      ('Moods', group((m) => [if (m.mood != null) m.mood!]), (k) => labelFor(moodOptions, k)),
-      ('Places', group((m) => [if (m.hasLocation) m.locationName!]), (k) => '📍 $k'),
-      ('Music', group((m) => [if (m.hasMusic) (m.musicArtist ?? '').isNotEmpty ? m.musicArtist! : m.musicTitle!]), (k) => '🎧 $k'),
-      ('What you make', group((m) => [m.type.name]), (k) => '${CreationType.parse(k).emoji} ${CreationType.parse(k).label}'),
+      (l10n.worldSectionInspirations, group((m) => m.inspirationTypes), (k) => '${emojiFor(inspirationOptions, k)} ${labelFor(l10n, inspirationOptions, k)}'),
+      (l10n.worldSectionMoods, group((m) => [if (m.mood != null) m.mood!]), (k) => labelFor(l10n, moodOptions, k)),
+      (l10n.worldSectionPlaces, group((m) => [if (m.hasLocation) m.locationName!]), (k) => '📍 $k'),
+      (l10n.worldSectionMusic, group((m) => [if (m.hasMusic) (m.musicArtist ?? '').isNotEmpty ? m.musicArtist! : m.musicTitle!]), (k) => '🎧 $k'),
+      (l10n.worldSectionWhatYouMake, group((m) => [m.type.name]), (k) => '${CreationType.parse(k).emoji} ${CreationType.parse(k).label(l10n)}'),
     ];
     final c = context.cm;
     return ListView(
@@ -142,9 +145,8 @@ class ExploreView extends StatelessWidget {
                     label: label(e.key),
                     count: e.value.length,
                     max: groups.values.map((v) => v.length).reduce((a, b) => a > b ? a : b),
-                    color: title == 'Moods' ? moodColor(e.key) : c.accent2,
-                    onTap: () =>
-                        showMomentsSheet(context, title: label(e.key), subtitle: '${e.value.length} moment${e.value.length == 1 ? '' : 's'}', moments: e.value),
+                    color: title == l10n.worldSectionMoods ? moodColor(e.key) : c.accent2,
+                    onTap: () => showMomentsSheet(context, title: label(e.key), subtitle: l10n.worldMomentsCount(e.value.length), moments: e.value),
                   ),
               ],
             ),
@@ -167,7 +169,7 @@ class _Orb extends StatelessWidget {
     final weight = max <= 1 ? 0.5 : (count - 1) / (max - 1);
     return Semantics(
       button: true,
-      label: '$label, $count moment${count == 1 ? '' : 's'}',
+      label: '$label, ${context.l10n.worldMomentsCount(count)}',
       child: GestureDetector(
         onTap: onTap,
         child: Container(

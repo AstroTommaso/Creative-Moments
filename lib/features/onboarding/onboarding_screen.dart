@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/catalog.dart';
 import '../../core/errors/app_error.dart';
+import '../../core/services/l10n_ext.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
 import '../../data/models/preferences.dart';
 import '../../data/providers.dart';
+import '../../l10n/app_localizations.dart';
 import '../../shared/widgets/ui.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -21,10 +23,10 @@ class _OnboardingState extends ConsumerState<OnboardingScreen> {
   int _page = 0;
   bool _busy = false;
 
-  static const _intro = [
-    ('Create what\nyou feel.', 'Write a poem, sketch a thought, keep an idea. No rules, no audience.'),
-    ('Capture what\ninspires you.', 'The moon, the rain, a song, a memory. Note what stood behind the work.'),
-    ('Keep the\nmoment.', 'Every creation is saved with its atmosphere, so you can return to how it felt.'),
+  List<(String, String)> _intro(AppLocalizations l10n) => [
+    (l10n.onboardStory1Title, l10n.onboardStory1Body),
+    (l10n.onboardStory2Title, l10n.onboardStory2Body),
+    (l10n.onboardStory3Title, l10n.onboardStory3Body),
   ];
   static const _last = 4; // 0-2 story, 3 inspirations, 4 atmosphere
 
@@ -108,7 +110,7 @@ class _OnboardingState extends ConsumerState<OnboardingScreen> {
                     controller: _pages,
                     onPageChanged: (i) => setState(() => _page = i),
                     children: [
-                      for (final (title, body) in _intro)
+                      for (final (title, body) in _intro(context.l10n))
                         Padding(
                           padding: const EdgeInsets.all(Sp.xl),
                           child: Column(
@@ -133,7 +135,7 @@ class _OnboardingState extends ConsumerState<OnboardingScreen> {
                     children: [
                       if (_page > 0)
                         IconButton(
-                          tooltip: 'Back',
+                          tooltip: context.l10n.onboardBackTooltip,
                           onPressed: () => _go(_page - 1),
                           icon: const Icon(Icons.arrow_back_rounded, color: white),
                         ),
@@ -141,7 +143,7 @@ class _OnboardingState extends ConsumerState<OnboardingScreen> {
                       PrimaryButton(
                         expand: false,
                         loading: _busy,
-                        label: _page == _last ? 'Enter my world' : 'Continue',
+                        label: _page == _last ? context.l10n.onboardEnterMyWorldCta : context.l10n.onboardContinueCta,
                         onPressed: () => _page == _last ? _finish() : _go(_page + 1),
                       ),
                     ],
@@ -168,10 +170,10 @@ class _EnvironmentStep extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('What inspires you?', style: AppType.display(44, color: Colors.white, height: 1)),
+          Text(context.l10n.onboardWhatInspiresYouTitle, style: AppType.display(44, color: Colors.white, height: 1)),
           const SizedBox(height: Sp.sm),
           Text(
-            'Pick as many as you like. This becomes the world you open every day.',
+            context.l10n.onboardInspiresYouSubtitle,
             style: AppType.ui(15, color: Colors.white.withValues(alpha: 0.8), height: 1.45),
           ),
           const SizedBox(height: Sp.xl),
@@ -179,7 +181,7 @@ class _EnvironmentStep extends StatelessWidget {
             spacing: Sp.sm,
             runSpacing: Sp.sm,
             children: [
-              for (final o in environmentOptions) OptionTile(emoji: o.emoji, label: o.label, selected: selected.contains(o.id), onTap: () => onToggle(o.id)),
+              for (final o in environmentOptions) OptionTile(emoji: o.emoji, label: o.label(context.l10n), selected: selected.contains(o.id), onTap: () => onToggle(o.id)),
             ],
           ),
         ],
@@ -208,7 +210,7 @@ class _AtmosphereStep extends StatelessWidget {
         Wrap(
           spacing: Sp.sm,
           runSpacing: Sp.sm,
-          children: [for (final o in opts) OptionTile(emoji: o.emoji, label: o.label, selected: value == o.id, onTap: () => onChange((p) => apply(p, o.id)))],
+          children: [for (final o in opts) OptionTile(emoji: o.emoji, label: o.label(context.l10n), selected: value == o.id, onTap: () => onChange((p) => apply(p, o.id)))],
         ),
       ],
     );
@@ -217,12 +219,12 @@ class _AtmosphereStep extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('How should it feel?', style: AppType.display(44, color: Colors.white, height: 1)),
+          Text(context.l10n.onboardHowShouldItFeelTitle, style: AppType.display(44, color: Colors.white, height: 1)),
           const SizedBox(height: Sp.sm),
-          Text('You can change all of this any time from Home.', style: AppType.ui(15, color: Colors.white.withValues(alpha: 0.8))),
-          group('ATMOSPHERE', atmosphereOptions, prefs.atmosphere, (p, v) => p.copyWith(atmosphere: v)),
-          group('TIME OF DAY', timeOptions, prefs.timeStyle, (p, v) => p.copyWith(timeStyle: v)),
-          group('VISUAL DENSITY', densityOptions, prefs.visualDensity, (p, v) => p.copyWith(visualDensity: v)),
+          Text(context.l10n.onboardChangeAnytimeSubtitle, style: AppType.ui(15, color: Colors.white.withValues(alpha: 0.8))),
+          group(context.l10n.onboardAtmosphereGroupLabel, atmosphereOptions, prefs.atmosphere, (p, v) => p.copyWith(atmosphere: v)),
+          group(context.l10n.onboardTimeOfDayGroupLabel, timeOptions, prefs.timeStyle, (p, v) => p.copyWith(timeStyle: v)),
+          group(context.l10n.onboardVisualDensityGroupLabel, densityOptions, prefs.visualDensity, (p, v) => p.copyWith(visualDensity: v)),
         ],
       ),
     );

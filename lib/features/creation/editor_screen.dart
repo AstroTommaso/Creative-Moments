@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/constants/catalog.dart';
+import '../../core/services/l10n_ext.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
 import '../../shared/widgets/drawing_view.dart';
@@ -28,12 +29,13 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     final s = ref.read(draftProvider);
     final n = ref.read(draftProvider.notifier);
     if (s.unsaved) {
+      final l10n = context.l10n;
+      final errorDetail = s.status == SaveStatus.error ? (s.error ?? l10n.editorConnectionProblemFallback) : null;
       final leave = await confirmDialog(
         context,
-        title: 'Not saved yet',
-        message:
-            'Your latest changes have not reached your account${s.status == SaveStatus.error ? ' (${s.error ?? 'connection problem'})' : ''}. If you leave now they will be lost.',
-        confirmLabel: 'Leave anyway',
+        title: l10n.editorLeaveDialogTitle,
+        message: errorDetail != null ? l10n.editorLeaveDialogMessageWithError(errorDetail) : l10n.editorLeaveDialogMessage,
+        confirmLabel: l10n.editorLeaveAnywayLabel,
         destructive: true,
       );
       if (!leave || !mounted) return;
@@ -115,7 +117,7 @@ class _EditorBar extends ConsumerWidget {
       child: Row(
         children: [
           IconButton(
-            tooltip: 'Close',
+            tooltip: context.l10n.editorCloseTooltip,
             onPressed: onClose,
             icon: Icon(Icons.close_rounded, color: c.text),
           ),
@@ -126,7 +128,7 @@ class _EditorBar extends ConsumerWidget {
               child: SaveChip(state: s, onRetry: () => ref.read(draftProvider.notifier).save()),
             ),
           ),
-          PrimaryButton(label: isEditing ? 'Next' : 'Continue', expand: false, onPressed: onContinue),
+          PrimaryButton(label: isEditing ? context.l10n.editorNextLabel : context.l10n.editorContinueLabel, expand: false, onPressed: onContinue),
           const SizedBox(width: Sp.sm),
         ],
       ),
@@ -144,10 +146,10 @@ class SaveChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.cm;
     final (text, color, icon) = switch (state.status) {
-      SaveStatus.saved => ('Saved', c.muted, Icons.check_rounded),
-      SaveStatus.saving => ('Saving…', c.muted, Icons.cloud_upload_outlined),
-      SaveStatus.dirty => (state.hasContent ? 'Not saved yet' : '', c.muted, Icons.edit_outlined),
-      SaveStatus.error => ('Not saved · tap to retry', c.danger, Icons.cloud_off_rounded),
+      SaveStatus.saved => (context.l10n.editorSavedLabel, c.muted, Icons.check_rounded),
+      SaveStatus.saving => (context.l10n.editorSavingLabel, c.muted, Icons.cloud_upload_outlined),
+      SaveStatus.dirty => (state.hasContent ? context.l10n.editorNotSavedYetLabel : '', c.muted, Icons.edit_outlined),
+      SaveStatus.error => (context.l10n.editorNotSavedRetryLabel, c.danger, Icons.cloud_off_rounded),
       SaveStatus.idle => ('', c.muted, Icons.check_rounded),
     };
     if (text.isEmpty) return const SizedBox.shrink();
@@ -223,11 +225,12 @@ class _WritingEditorState extends ConsumerState<WritingEditor> {
           .read(draftProvider.notifier)
           .addImage(PendingImage(id: const Uuid().v4(), bytes: bytes, ext: png ? 'png' : 'jpg', contentType: png ? 'image/png' : 'image/jpeg'));
     } catch (e) {
-      if (mounted) showSnack(context, 'That photo could not be added. Check the app has permission to use your photos or camera.');
+      if (mounted) showSnack(context, context.l10n.editorPhotoAddFailedMessage);
     }
   }
 
   void _photoSheet() {
+    final l10n = context.l10n;
     showModalBottomSheet<void>(
       context: context,
       builder: (ctx) => SafeArea(
@@ -236,7 +239,7 @@ class _WritingEditorState extends ConsumerState<WritingEditor> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Choose from library'),
+              title: Text(l10n.editorChooseFromLibraryLabel),
               onTap: () {
                 Navigator.pop(ctx);
                 _pick(ImageSource.gallery);
@@ -244,7 +247,7 @@ class _WritingEditorState extends ConsumerState<WritingEditor> {
             ),
             ListTile(
               leading: const Icon(Icons.photo_camera_outlined),
-              title: const Text('Take a photo'),
+              title: Text(l10n.editorTakePhotoLabel),
               onTap: () {
                 Navigator.pop(ctx);
                 _pick(ImageSource.camera);
@@ -264,11 +267,11 @@ class _WritingEditorState extends ConsumerState<WritingEditor> {
     final isPhoto = s.type == CreationType.photo;
     final isFree = s.type == CreationType.freeform;
     final hint = switch (s.type) {
-      CreationType.letter => 'Dear…',
-      CreationType.story => 'Once…',
-      CreationType.idea => 'An idea, just as it comes…',
-      CreationType.photo => 'Say something about this photo (optional)',
-      _ => 'Begin anywhere…',
+      CreationType.letter => context.l10n.editorHintLetter,
+      CreationType.story => context.l10n.editorHintStory,
+      CreationType.idea => context.l10n.editorHintIdea,
+      CreationType.photo => context.l10n.editorHintPhoto,
+      _ => context.l10n.editorHintDefault,
     };
     final bodyStyle = AppType.display(23, color: c.text, height: 1.55, weight: FontWeight.w500);
     return Stack(
@@ -287,7 +290,7 @@ class _WritingEditorState extends ConsumerState<WritingEditor> {
                 minLines: 1,
                 maxLines: 3,
                 decoration: InputDecoration(
-                  hintText: 'Title',
+                  hintText: context.l10n.editorTitleHint,
                   hintStyle: AppType.display(36, weight: FontWeight.w700, color: c.muted.withValues(alpha: 0.5)),
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
@@ -338,22 +341,31 @@ class _WritingEditorState extends ConsumerState<WritingEditor> {
                 padding: const EdgeInsets.symmetric(horizontal: Sp.sm, vertical: Sp.xs),
                 child: Row(
                   children: [
-                    IconButton(tooltip: 'Undo', onPressed: _undo.value.canUndo ? _undo.undo : null, icon: const Icon(Icons.undo_rounded)),
-                    IconButton(tooltip: 'Redo', onPressed: _undo.value.canRedo ? _undo.redo : null, icon: const Icon(Icons.redo_rounded)),
-                    IconButton(tooltip: 'Add photo', onPressed: _photoSheet, icon: const Icon(Icons.add_photo_alternate_outlined)),
-                    if (isFree) IconButton(tooltip: 'Add a drawing', onPressed: () => context.push('/create/draw'), icon: const Icon(Icons.gesture_rounded)),
+                    IconButton(tooltip: context.l10n.editorUndoTooltip, onPressed: _undo.value.canUndo ? _undo.undo : null, icon: const Icon(Icons.undo_rounded)),
+                    IconButton(tooltip: context.l10n.editorRedoTooltip, onPressed: _undo.value.canRedo ? _undo.redo : null, icon: const Icon(Icons.redo_rounded)),
+                    IconButton(tooltip: context.l10n.editorAddPhotoTooltip, onPressed: _photoSheet, icon: const Icon(Icons.add_photo_alternate_outlined)),
+                    if (isFree)
+                      IconButton(
+                        tooltip: context.l10n.editorAddDrawingTooltip,
+                        onPressed: () => context.push('/create/draw'),
+                        icon: const Icon(Icons.gesture_rounded),
+                      ),
                     const Spacer(),
                     GestureDetector(
                       onTap: () => setState(() => _showCount = !_showCount),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: Sp.sm),
                         child: Text(
-                          _showCount ? '${s.wordCount} words' : 'Words',
+                          _showCount ? context.l10n.editorWordCount(s.wordCount) : context.l10n.editorWordsLabel,
                           style: AppType.ui(12, weight: FontWeight.w700, color: c.muted),
                         ),
                       ),
                     ),
-                    IconButton(tooltip: 'Focus mode', onPressed: () => widget.onFocusChanged(true), icon: const Icon(Icons.center_focus_strong_outlined)),
+                    IconButton(
+                      tooltip: context.l10n.editorFocusModeTooltip,
+                      onPressed: () => widget.onFocusChanged(true),
+                      icon: const Icon(Icons.center_focus_strong_outlined),
+                    ),
                   ],
                 ),
               ),
@@ -366,7 +378,11 @@ class _WritingEditorState extends ConsumerState<WritingEditor> {
             right: Sp.sm,
             child: Opacity(
               opacity: 0.55,
-              child: IconButton(tooltip: 'Exit focus mode', onPressed: () => widget.onFocusChanged(false), icon: const Icon(Icons.close_fullscreen_rounded)),
+              child: IconButton(
+                tooltip: context.l10n.editorExitFocusModeTooltip,
+                onPressed: () => widget.onFocusChanged(false),
+                icon: const Icon(Icons.close_fullscreen_rounded),
+              ),
             ),
           ),
       ],
@@ -427,7 +443,7 @@ class _MediaStrip extends ConsumerWidget {
                   onTap: () => context.push('/create/draw'),
                   child: Semantics(
                     button: true,
-                    label: 'Edit drawing',
+                    label: context.l10n.editorEditDrawingLabel,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(Rd.md),
                       child: SizedBox(
@@ -447,13 +463,14 @@ class _MediaStrip extends ConsumerWidget {
                   ),
                 ),
               ),
-            for (final m in s.images) tile(SignedImage(url: m.url, cacheWidth: 400), () => n.removeSavedImage(m), 'Remove photo'),
-            for (final p in s.pendingImages) tile(Image.memory(p.bytes, fit: BoxFit.cover, cacheWidth: 400), () => n.removePendingImage(p.id), 'Remove photo'),
+            for (final m in s.images) tile(SignedImage(url: m.url, cacheWidth: 400), () => n.removeSavedImage(m), context.l10n.editorRemovePhotoLabel),
+            for (final p in s.pendingImages)
+              tile(Image.memory(p.bytes, fit: BoxFit.cover, cacheWidth: 400), () => n.removePendingImage(p.id), context.l10n.editorRemovePhotoLabel),
             GestureDetector(
               onTap: onAddPhoto,
               child: Semantics(
                 button: true,
-                label: 'Add photo',
+                label: context.l10n.editorAddPhotoTooltip,
                 child: Container(
                   width: size,
                   height: size,
@@ -467,7 +484,7 @@ class _MediaStrip extends ConsumerWidget {
                     children: [
                       Icon(Icons.add_photo_alternate_outlined, color: c.muted),
                       const SizedBox(height: Sp.xs),
-                      Text('Photo', style: context.tt.bodySmall),
+                      Text(context.l10n.editorPhotoLabel, style: context.tt.bodySmall),
                     ],
                   ),
                 ),
@@ -496,7 +513,7 @@ class DrawScreen extends ConsumerWidget {
           child: Row(
             children: [
               const Spacer(),
-              PrimaryButton(label: 'Done', expand: false, onPressed: () => context.pop()),
+              PrimaryButton(label: context.l10n.editorDoneLabel, expand: false, onPressed: () => context.pop()),
               const SizedBox(width: Sp.sm),
             ],
           ),

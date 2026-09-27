@@ -1,0 +1,571 @@
+{
+  "@@locale": "en",
+  "appBrandName": "Creative\nMoments",
+  "@appBrandName": {
+    "description": "App brand wordmark, shown on the welcome and splash screens"
+  },
+  "createMomentCta": "Create a Moment",
+  "@createMomentCta": {
+    "description": "Shared CTA button/label, appears on Home, World, Moments empty states and the bottom nav FAB"
+  },
+  "tryAgain": "Try Again",
+  "@tryAgain": {
+    "description": "Shared retry button, appears on Home and the generic ErrorState widget"
+  },
+  "envMoon": "Moon",
+  "envStars": "Stars",
+  "envFlowers": "Flowers",
+  "envNature": "Nature",
+  "envOcean": "Ocean",
+  "envMountains": "Mountains",
+  "envDesert": "Desert",
+  "envCity": "City",
+  "envRain": "Rain",
+  "envClouds": "Clouds",
+  "envSunset": "Sunset",
+  "envFire": "Fire",
+  "envAutumn": "Autumn",
+  "envWinter": "Winter",
+  "envAbstract": "Abstract",
+  "inspMoon": "Moon",
+  "inspRain": "Rain",
+  "inspOcean": "Ocean",
+  "inspStars": "Stars",
+  "inspFlowers": "Flowers",
+  "inspNature": "Nature",
+  "inspDesert": "Desert",
+  "inspCity": "City",
+  "inspMusic": "Music",
+  "inspSeen": "Something I saw",
+  "inspMemory": "A memory",
+  "inspFeeling": "A feeling",
+  "inspPerson": "A person",
+  "inspPlace": "A place",
+  "inspOther": "Something else",
+  "moodCalm": "Calm",
+  "moodDreamy": "Dreamy",
+  "moodNostalgic": "Nostalgic",
+  "moodHappy": "Happy",
+  "moodMelancholic": "Melancholic",
+  "moodRomantic": "Romantic",
+  "moodEnergetic": "Energetic",
+  "moodLonely": "Lonely",
+  "moodPeaceful": "Peaceful",
+  "moodConfused": "Confused",
+  "moodInspired": "Inspired",
+  "moodOther": "Other",
+  "atmosphereDreamy": "Dreamy",
+  "atmosphereCalm": "Calm",
+  "atmosphereMystical": "Mystical",
+  "atmosphereWarm": "Warm",
+  "atmosphereDark": "Dark",
+  "atmosphereRomantic": "Romantic",
+  "atmosphereNatural": "Natural",
+  "atmosphereEnergetic": "Energetic",
+  "timeAuto": "Follow the clock",
+  "timeDawn": "Dawn",
+  "timeDay": "Day",
+  "timeSunset": "Sunset",
+  "timeNight": "Night",
+  "densitySubtle": "Subtle",
+  "densityBalanced": "Balanced",
+  "densityImmersive": "Immersive",
+  "creationTypeWriting": "Writing",
+  "creationTypeDrawing": "Drawing",
+  "creationTypeStory": "Story",
+  "creationTypeLetter": "Letter",
+  "creationTypePhoto": "Photo",
+  "creationTypeIdea": "Idea",
+  "creationTypeVoice": "Voice",
+  "creationTypeFreeform": "Freeform",
+  "greetingStillAwake": "Still awake.",
+  "greetingStillAwakeNamed": "Still awake, {name}.",
+  "@greetingStillAwakeNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "greetingGoodMorning": "Good morning.",
+  "greetingGoodMorningNamed": "Good morning, {name}.",
+  "@greetingGoodMorningNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "greetingGoodAfternoon": "Good afternoon.",
+  "greetingGoodAfternoonNamed": "Good afternoon, {name}.",
+  "@greetingGoodAfternoonNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "greetingGoodEvening": "Good evening.",
+  "greetingGoodEveningNamed": "Good evening, {name}.",
+  "@greetingGoodEveningNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "promptTonight": "What are you inspired by tonight?",
+  "promptMorning": "What is stirring in you this morning?",
+  "promptToday": "What is inspiring you today?",
+  "promptEvening": "What are you inspired by this evening?",
+  "questionG1": "What made you want to create something right now?",
+  "questionG2": "If this moment had a color, which one would it be?",
+  "questionG3": "What would you like to remember about today?",
+  "questionG4": "Who, if anyone, is this for?",
+  "questionG5": "What were you feeling just before you started?",
+  "questionG6": "If this creation could speak, what would it say first?",
+  "questionG7": "What is one thing you left out on purpose?",
+  "questionG8": "What would you change about this if nobody would ever see it?",
+  "questionG9": "Where does this creation belong?",
+  "questionG10": "What sound would this moment make?",
+  "questionG11": "What did you notice today that you almost missed?",
+  "questionG12": "What was the hardest part of making this?",
+  "questionW1": "Which line surprised you while writing?",
+  "questionW2": "What did you want to say but could not find the words for?",
+  "questionW3": "If this text were a place, what would it look like?",
+  "questionS1": "Who is the character you keep thinking about?",
+  "questionS2": "What happens the moment after your story ends?",
+  "questionL1": "What would you add to this letter if you knew it would be read years from now?",
+  "questionL2": "Will you send it, keep it, or let it go?",
+  "questionD1": "Where did your hand want to go first?",
+  "questionD2": "What is the quietest part of this drawing?",
+  "questionD3": "If you kept drawing for an hour, what would appear?",
+  "questionP1": "What made you stop and take this picture?",
+  "questionP2": "What is just outside the frame?",
+  "questionI1": "Where might this idea grow next?",
+  "questionI2": "What is the smallest first step for this idea?",
+  "questionF1": "Which part of this feels most like you?",
+  "questionM1": "If this drawing existed somewhere in the universe, where would it be?",
+  "questionM2": "What does the moon know that you are still learning?",
+  "questionM3": "What do you wish the moon could carry for you tonight?",
+  "questionR1": "Is the rain part of what you are trying to say?",
+  "questionR2": "What does the sound of rain remind you of?",
+  "questionR3": "Would this moment feel different without the rain?",
+  "questionO1": "What does the sea say when you are not listening?",
+  "questionO2": "Are you the wave or the shore right now?",
+  "questionSt1": "Which star would you visit if you could?",
+  "questionSt2": "How small or how large do you feel under the sky?",
+  "questionFl1": "What would this flower say if it had a voice?",
+  "questionFl2": "What is blooming in you right now?",
+  "questionN1": "What part of nature influenced this?",
+  "questionN2": "What did the outdoors give you today?",
+  "questionDe1": "What does emptiness feel like in this place?",
+  "questionC1": "Which window of the city are you looking through?",
+  "questionC2": "What is the city doing while you create?",
+  "questionMu1": "Is the music changing the rhythm of your writing?",
+  "questionMu2": "If this song were a color, what would it be?",
+  "questionMu3": "Which moment in the song did you draw or write to?",
+  "questionSe1": "What did you see that you cannot stop thinking about?",
+  "questionMe1": "Which memory keeps returning, and why now?",
+  "questionMe2": "What would you tell the person you were in that memory?",
+  "questionFe1": "Where in your body do you feel this?",
+  "questionPe1": "What would you like them to understand?",
+  "questionPe2": "What is one thing about them you never want to forget?",
+  "questionPl1": "What does this place smell like?",
+  "questionPl2": "Who else belongs in this place?",
+  "questionMo1": "What would make this feeling a little softer?",
+  "questionMo2": "Is this loneliness quiet or heavy?",
+  "questionMo3": "What do you want to hold on to from this feeling?",
+  "questionMo4": "What is the first word that comes to mind for tonight?",
+  "questionMo5": "What are you missing, and is it a person, a place or a time?",
+  "questionMo6": "What would you say to someone who loves you right now?",
+  "questionMo7": "Where does all this energy want to go?",
+  "questionMo8": "If this confusion had a shape, what would it be?",
+  "questionT1": "Why did you feel like creating tonight?",
+  "questionT2": "What does the quiet of the night let you hear?",
+  "questionT3": "How is the morning light changing what you make?",
+  "questionT4": "What is your day leaving behind?",
+  "questionT5": "What would you make if the day were slower?",
+  "questionE1": "Does your world tonight feel more like the sea or the sky?",
+  "questionE2": "If your Home were a place you could walk into, what would you do first?",
+  "authWelcomeSubtitle": "Create something. Capture what inspired you. Keep the moment.",
+  "authBeginCta": "Begin",
+  "authAlreadyHaveAccount": "I already have an account",
+  "authLoginTitle": "Welcome back",
+  "authLoginSubtitle": "Your moments are waiting.",
+  "authEmailLabel": "Email",
+  "authPasswordLabel": "Password",
+  "authEnterPasswordError": "Enter your password",
+  "authSignInCta": "Sign in",
+  "authForgotPasswordCta": "Forgot password?",
+  "authCreateAccountCta": "Create account",
+  "authRegisterTitle": "Make it yours",
+  "authRegisterSubtitle": "A private creative space. Only you can see what is inside.",
+  "authNameLabel": "Your name",
+  "authWhatShouldWeCallYouError": "What should we call you?",
+  "authPasswordWithHintLabel": "Password (8+ characters)",
+  "authResetPasswordTitle": "Reset password",
+  "authResetLinkSentSubtitle": "If an account exists for that email, a reset link is on its way. Open it on this device.",
+  "authResetPasswordSubtitle": "We will email you a link to choose a new password.",
+  "authSendLinkCta": "Send link",
+  "authBackToSignInCta": "Back to sign in",
+  "authInvalidEmailError": "Enter a valid email address",
+  "authPasswordTooShortError": "Use at least 8 characters",
+  "onboardStory1Title": "Create what\nyou feel.",
+  "onboardStory1Body": "Write a poem, sketch a thought, keep an idea. No rules, no audience.",
+  "onboardStory2Title": "Capture what\ninspires you.",
+  "onboardStory2Body": "The moon, the rain, a song, a memory. Note what stood behind the work.",
+  "onboardStory3Title": "Keep the\nmoment.",
+  "onboardStory3Body": "Every creation is saved with its atmosphere, so you can return to how it felt.",
+  "onboardBackTooltip": "Back",
+  "onboardEnterMyWorldCta": "Enter my world",
+  "onboardContinueCta": "Continue",
+  "onboardWhatInspiresYouTitle": "What inspires you?",
+  "onboardInspiresYouSubtitle": "Pick as many as you like. This becomes the world you open every day.",
+  "onboardHowShouldItFeelTitle": "How should it feel?",
+  "onboardChangeAnytimeSubtitle": "You can change all of this any time from Home.",
+  "onboardAtmosphereGroupLabel": "ATMOSPHERE",
+  "onboardTimeOfDayGroupLabel": "TIME OF DAY",
+  "onboardVisualDensityGroupLabel": "VISUAL DENSITY",
+  "homeRecentMomentsHeader": "Your recent moments",
+  "homeEmptyStateTitle": "Your story starts here.",
+  "homeEmptyStateSubtitle": "Create something worth remembering.",
+  "homeCustomizeLabel": "Customize",
+  "homeCustomizeSemanticLabel": "Customize your world",
+  "homeOpenMomentSemanticLabel": "Open moment: {title}",
+  "@homeOpenMomentSemanticLabel": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "createCloseTooltip": "Close",
+  "createTitle": "What are you\ncreating?",
+  "createSubtitle": "Choose a starting point. You can change your mind while you work.",
+  "createUnsureLabel": "I don't know yet",
+  "detailsBackTooltip": "Back",
+  "detailsSaveChangesLabel": "Save changes",
+  "detailsSaveMomentLabel": "Save Moment",
+  "detailsContinueLabel": "Continue",
+  "detailsSkipLabel": "Skip",
+  "detailsNotSavedRetryingTooltip": "Not saved yet. Retrying…",
+  "detailsInspirationTitle": "What's inspiring\nyou right now?",
+  "detailsInspirationSubtitle": "Choose anything that was in the room with you.",
+  "detailsInspirationOtherDefault": "Something else",
+  "detailsInspirationOtherHint": "What was it?",
+  "detailsMoodTitle": "How does this\nmoment feel?",
+  "detailsMoodOtherHint": "In your own words",
+  "detailsMusicTitle": "What are you\nlistening to?",
+  "detailsMusicSubtitle": "Add a song by hand, or skip if it was quiet.",
+  "detailsMusicSongHint": "Song title",
+  "detailsMusicArtistHint": "Artist",
+  "detailsMusicAlbumHint": "Album (optional)",
+  "detailsLocationTitle": "Where are you?",
+  "detailsLocationSubtitle": "Optional. Your location is only stored with this moment.",
+  "detailsLocationUseCurrentLabel": "Use current location",
+  "detailsLocationManualHint": "Or type a place",
+  "detailsQuestionTitle": "A thought to\nsit with",
+  "detailsQuestionSubtitle": "Answer, skip, or ask for another. Nothing here is required.",
+  "detailsQuestionExhaustedMessage": "You have seen every question we have. Lovely.",
+  "detailsQuestionAnswerHint": "Write whatever comes…",
+  "detailsAnotherQuestionLabel": "Another question",
+  "detailsFinishEditTitle": "Ready to keep\nthe changes?",
+  "detailsFinishNewTitle": "Ready to keep\nthis moment?",
+  "detailsFinishTitleHint": "Give it a title (optional)",
+  "detailsOneAnsweredQuestionLabel": "One answered question",
+  "detailsNothingElseAddedMessage": "Nothing else added, and that is fine.",
+  "editorLeaveDialogTitle": "Not saved yet",
+  "editorLeaveDialogMessage": "Your latest changes have not reached your account. If you leave now they will be lost.",
+  "editorLeaveDialogMessageWithError": "Your latest changes have not reached your account ({error}). If you leave now they will be lost.",
+  "@editorLeaveDialogMessageWithError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "editorConnectionProblemFallback": "connection problem",
+  "editorLeaveAnywayLabel": "Leave anyway",
+  "editorCloseTooltip": "Close",
+  "editorNextLabel": "Next",
+  "editorContinueLabel": "Continue",
+  "editorSavedLabel": "Saved",
+  "editorSavingLabel": "Saving…",
+  "editorNotSavedYetLabel": "Not saved yet",
+  "editorNotSavedRetryLabel": "Not saved · tap to retry",
+  "editorPhotoAddFailedMessage": "That photo could not be added. Check the app has permission to use your photos or camera.",
+  "editorChooseFromLibraryLabel": "Choose from library",
+  "editorTakePhotoLabel": "Take a photo",
+  "editorHintLetter": "Dear…",
+  "editorHintStory": "Once…",
+  "editorHintIdea": "An idea, just as it comes…",
+  "editorHintPhoto": "Say something about this photo (optional)",
+  "editorHintDefault": "Begin anywhere…",
+  "editorTitleHint": "Title",
+  "editorUndoTooltip": "Undo",
+  "editorRedoTooltip": "Redo",
+  "editorAddPhotoTooltip": "Add photo",
+  "editorAddDrawingTooltip": "Add a drawing",
+  "editorWordCount": "{count} words",
+  "@editorWordCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "editorWordsLabel": "Words",
+  "editorFocusModeTooltip": "Focus mode",
+  "editorExitFocusModeTooltip": "Exit focus mode",
+  "editorRemovePhotoLabel": "Remove photo",
+  "editorEditDrawingLabel": "Edit drawing",
+  "editorPhotoLabel": "Photo",
+  "editorDoneLabel": "Done",
+  "drawingClearCanvasTitle": "Clear the canvas?",
+  "drawingClearCanvasMessage": "This removes everything you drew. You cannot undo it.",
+  "drawingClearLabel": "Clear",
+  "drawingCanvasLabel": "Drawing canvas",
+  "drawingColourLabel": "Colour",
+  "drawingPencilLabel": "Pencil",
+  "drawingBrushLabel": "Brush",
+  "drawingEraserLabel": "Eraser",
+  "drawingBrushSizeLabel": "Brush size",
+  "drawingUndoLabel": "Undo",
+  "drawingRedoLabel": "Redo",
+  "drawingPaperTooltip": "Paper",
+  "drawingPaperNight": "Night",
+  "drawingPaperInk": "Ink",
+  "drawingPaperCream": "Cream",
+  "drawingPaperPaper": "Paper",
+  "drawingClearButtonLabel": "Clear canvas",
+  "drawingFullScreenLabel": "Full screen",
+  "drawingExitFullScreenLabel": "Exit full screen",
+  "momentsTitle": "Moments",
+  "momentsKeptCount": "{count, plural, one{{count} moment kept} other{{count} moments kept}}",
+  "@momentsKeptCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "momentsTimelineTab": "Timeline",
+  "momentsCalendarTab": "Calendar",
+  "momentsEmptyTitle": "Your story starts here.",
+  "momentsEmptyMessage": "Create something worth remembering.",
+  "momentDetailTonight": "Tonight",
+  "momentDetailToday": "Today",
+  "momentDetailYesterday": "Yesterday",
+  "momentDetailNotFoundTitle": "Moment not found",
+  "momentDetailNotFoundMessage": "It may have been deleted.",
+  "momentDetailDeleteTitle": "Delete this moment?",
+  "momentDetailDeleteMessage": "This removes it and everything attached to it. It cannot be undone.",
+  "momentDetailDeleteConfirm": "Delete",
+  "momentDetailDeletedSnack": "Moment deleted.",
+  "momentDetailDeleteFailedSnack": "It couldn't be deleted. {error}",
+  "@momentDetailDeleteFailedSnack": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "momentDetailBack": "Back",
+  "momentDetailMoreTooltip": "More",
+  "momentDetailEditAction": "Edit",
+  "momentDetailDeleteAction": "Delete",
+  "momentDetailInspiredBy": "Inspired by",
+  "momentDetailMoodLabel": "Mood",
+  "momentDetailKeptBanner": "✦  Kept in your world",
+  "momentDetailEditedAt": "Edited {date}",
+  "@momentDetailEditedAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarPrevMonthTooltip": "Previous month",
+  "calendarNextMonthTooltip": "Next month",
+  "calendarNothingThisMonth": "Nothing this month",
+  "calendarMonthMomentsCount": "{count, plural, one{{count} moment} other{{count} moments}}",
+  "@calendarMonthMomentsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarDayMomentsCount": "{count, plural, one{{count} moment} other{{count} moments}}",
+  "@calendarDayMomentsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "weekdayMon": "M",
+  "weekdayTue": "T",
+  "weekdayWed": "W",
+  "weekdayThu": "T",
+  "weekdayFri": "F",
+  "weekdaySat": "S",
+  "weekdaySun": "S",
+  "worldTitle": "My World",
+  "worldSubtitleExplore": "Everything that keeps returning",
+  "worldSubtitleConstellation": "Your creative constellation",
+  "worldConstellationTab": "Constellation",
+  "worldExploreTab": "Explore",
+  "worldEmptyTitle": "Your world is waiting.",
+  "worldEmptyMessage": "Each moment you keep becomes a star, and stars find each other.",
+  "worldSectionInspirations": "Inspirations",
+  "worldSectionMoods": "Moods",
+  "worldSectionPlaces": "Places",
+  "worldSectionMusic": "Music",
+  "worldSectionWhatYouMake": "What you make",
+  "worldMomentsCount": "{count, plural, one{{count} moment} other{{count} moments}}",
+  "@worldMomentsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "constellationSemanticsLabel": "{count, plural, one{Creative constellation with {count} moment. Pinch to zoom, tap a star to preview.} other{Creative constellation with {count} moments. Pinch to zoom, tap a star to preview.}}",
+  "@constellationSemanticsLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "constellationHintSingle": "Every moment you keep becomes a star.",
+  "constellationHintMulti": "Pinch to explore. Tap a star to revisit it.",
+  "constellationOpenLabel": "Open {title}",
+  "@constellationOpenLabel": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "profileYourNameTitle": "Your name",
+  "profileNameHint": "Name",
+  "profileCancel": "Cancel",
+  "profileSave": "Save",
+  "profileSettingsTooltip": "Settings",
+  "profileChangePhotoLabel": "Change profile photo",
+  "profileAddYourName": "Add your name",
+  "profileMomentsKeptSingular": "moment\nkept",
+  "profileMomentsKeptPlural": "moments\nkept",
+  "profileEmptyPatterns": "As you create, your patterns appear here.",
+  "profileSectionWhatYouMake": "What you make",
+  "profileSectionRecurringInspirations": "Recurring inspirations",
+  "profileSectionRecurringMoods": "Recurring moods",
+  "profileSectionAtmospheres": "Atmospheres",
+  "profileSectionCreativePlaces": "Creative places",
+  "settingsTitle": "Settings",
+  "settingsSectionAccount": "Account",
+  "settingsEmailTitle": "Email",
+  "settingsChangePasswordTitle": "Change password",
+  "settingsChangePasswordSubtitle": "We will email you a secure link",
+  "settingsSectionAppearance": "Appearance",
+  "settingsDarkModeTitle": "Dark mode",
+  "settingsDarkModeSubtitle": "Light mode gives the pages a warm paper tone",
+  "settingsReduceMotionTitle": "Reduce motion",
+  "settingsReduceMotionSubtitle": "Calmer, still environments and no entrance animations",
+  "settingsCustomizeHomeTitle": "Customize your Home",
+  "settingsCustomizeHomeSubtitle": "Environment, time, atmosphere, density",
+  "settingsSectionLocation": "Location",
+  "settingsLocationTitle": "Location",
+  "settingsLocationSubtitle": "Only used when you choose to add a place to a moment",
+  "settingsWeatherTitle": "Weather in my world",
+  "settingsWeatherSubtitle": "Lets rain or clouds appear in Home. Needs location. Approximate area only.",
+  "settingsSectionPrivacy": "Privacy",
+  "settingsPrivacyNote": "Everything you create is private by default. Only you can read your moments, drawings and photos; access is enforced by the database itself. Nothing is public and there is no social feed.",
+  "settingsDeleteMomentsTileTitle": "Delete all my moments",
+  "settingsSectionSession": "Session",
+  "settingsLogoutTileTitle": "Log out",
+  "settingsDeleteAccountTileTitle": "Delete account",
+  "settingsDeleteAccountTileSubtitle": "Permanently removes everything",
+  "settingsLogoutTitle": "Log out?",
+  "settingsLogoutMessage": "Your moments stay safe in your account.",
+  "settingsLogoutConfirm": "Log out",
+  "settingsResetLinkSent": "We sent a password reset link to {email}.",
+  "@settingsResetLinkSent": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsDeleteMomentsTitle": "Delete all moments?",
+  "settingsDeleteMomentsMessage": "Every moment, drawing and photo will be permanently removed. Your account stays.",
+  "settingsDeleteMomentsConfirm": "Delete all",
+  "settingsAllMomentsDeleted": "All moments deleted.",
+  "settingsDeleteMomentsFailed": "That didn't finish. {error}",
+  "@settingsDeleteMomentsFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsDeleteAccountTitle": "Delete your account?",
+  "settingsDeleteAccountWarning": "This permanently deletes your account, moments, drawings and photos. It cannot be undone.",
+  "settingsDeleteAccountHint": "Type DELETE to confirm",
+  "settingsCancel": "Cancel",
+  "settingsDeleteForever": "Delete forever",
+  "settingsDeleteAccountFailed": "Your account couldn't be deleted. {error}",
+  "@settingsDeleteAccountFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "customizeDoneTooltip": "Done",
+  "customizeTitle": "Customize",
+  "customizeSubtitle": "Tap to change your world. Pull this panel down to see all of it.",
+  "customizeGroupEnvironment": "Environment",
+  "customizeEnvironmentHint": "{leader} leads; the rest blend in.",
+  "@customizeEnvironmentHint": {
+    "placeholders": {
+      "leader": {
+        "type": "String"
+      }
+    }
+  },
+  "customizeGroupTime": "Time",
+  "customizeGroupAtmosphere": "Atmosphere",
+  "customizeGroupDensity": "Visual density",
+  "uiErrorGeneric": "Something went wrong.",
+  "uiConfirm": "Confirm",
+  "uiCancel": "Cancel",
+  "uiPhotoLabel": "Photo",
+  "uiDrawingLabel": "Drawing",
+  "cardSemanticLabel": "{title}, {type}, {when}",
+  "@cardSemanticLabel": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "shellTabHome": "Home",
+  "shellTabMoments": "Moments",
+  "shellTabWorld": "World",
+  "shellTabMe": "Me",
+  "appTitle": "Creative Moments",
+  "settingsLanguageTitle": "Language",
+  "settingsLanguageSystem": "System",
+  "settingsLanguageItalian": "Italiano",
+  "settingsLanguageEnglish": "English"
+}

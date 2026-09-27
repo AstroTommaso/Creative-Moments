@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/constants/catalog.dart';
+import '../../core/services/l10n_ext.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
 import '../../shared/widgets/ui.dart';
@@ -26,7 +27,7 @@ class CreateTypeScreen extends ConsumerWidget {
     return AtmoScaffold(
       intensity: 0.45,
       appBar: AppBar(
-        leading: IconButton(tooltip: 'Close', icon: const Icon(Icons.close_rounded), onPressed: () => context.pop()),
+        leading: IconButton(tooltip: context.l10n.createCloseTooltip, icon: const Icon(Icons.close_rounded), onPressed: () => context.pop()),
       ),
       body: SafeArea(
         child: ListView(
@@ -34,10 +35,10 @@ class CreateTypeScreen extends ConsumerWidget {
           children: [
             Semantics(
               header: true,
-              child: Text('What are you\ncreating?', style: AppType.display(46, color: c.text, height: 1)),
+              child: Text(context.l10n.createTitle, style: AppType.display(46, color: c.text, height: 1)),
             ),
             const SizedBox(height: Sp.sm),
-            Text('Choose a starting point. You can change your mind while you work.', style: context.tt.bodyMedium?.copyWith(color: c.muted)),
+            Text(context.l10n.createSubtitle, style: context.tt.bodyMedium?.copyWith(color: c.muted)),
             const SizedBox(height: Sp.xl),
             LayoutBuilder(
               builder: (context, box) {
@@ -46,7 +47,7 @@ class CreateTypeScreen extends ConsumerWidget {
                   width: width,
                   height: 108,
                   child: Glass(
-                    semanticLabel: t.label,
+                    semanticLabel: t.label(context.l10n),
                     onTap: () => _start(context, ref, t),
                     padding: const EdgeInsets.all(Sp.lg),
                     child: Row(
@@ -55,7 +56,7 @@ class CreateTypeScreen extends ConsumerWidget {
                         const SizedBox(width: Sp.md),
                         Expanded(
                           child: Text(
-                            t.label,
+                            t.label(context.l10n),
                             style: AppType.display(24, weight: FontWeight.w700, color: c.text),
                           ),
                         ),
@@ -72,7 +73,7 @@ class CreateTypeScreen extends ConsumerWidget {
             ),
             const SizedBox(height: Sp.lg),
             Center(
-              child: GhostButton(label: "I don't know yet", icon: Icons.auto_awesome_outlined, onPressed: () => _start(context, ref, CreationType.freeform)),
+              child: GhostButton(label: context.l10n.createUnsureLabel, icon: Icons.auto_awesome_outlined, onPressed: () => _start(context, ref, CreationType.freeform)),
             ),
           ],
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/services/l10n_ext.dart';
 import '../../data/models/drawing.dart';
 
 /// Smooth path through points (quadratic through midpoints).
@@ -68,7 +69,7 @@ class DrawingView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       image: true,
-      label: 'Drawing',
+      label: context.l10n.uiDrawingLabel,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(radius),
         child: AspectRatio(

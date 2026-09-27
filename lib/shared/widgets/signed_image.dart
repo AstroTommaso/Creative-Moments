@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/services/l10n_ext.dart';
 import '../../core/theme/tokens.dart';
 
 /// Renders a photo from a ready-to-use (already signed) URL provided by the
@@ -21,7 +22,7 @@ class SignedImage extends StatelessWidget {
       u,
       fit: fit,
       cacheWidth: cacheWidth,
-      semanticLabel: semanticLabel ?? 'Photo',
+      semanticLabel: semanticLabel ?? context.l10n.uiPhotoLabel,
       gaplessPlayback: true,
       frameBuilder: (_, child, frame, sync) => AnimatedOpacity(opacity: frame == null && !sync ? 0 : 1, duration: Mo.slow, child: child),
       errorBuilder: (_, _, _) => ColoredBox(

@@ -15,6 +15,7 @@ function serialize(p: {
   locationEnabled: boolean;
   weatherEnabled: boolean;
   onboarded: boolean;
+  language: string;
 }) {
   return {
     environments: p.environments,
@@ -28,6 +29,7 @@ function serialize(p: {
     locationEnabled: p.locationEnabled,
     weatherEnabled: p.weatherEnabled,
     onboarded: p.onboarded,
+    language: p.language,
   };
 }
 
@@ -51,6 +53,7 @@ const schema = z.object({
   locationEnabled: z.boolean(),
   weatherEnabled: z.boolean(),
   onboarded: z.boolean(),
+  language: z.enum(["system", "it", "en"]),
 });
 
 export const PUT = withErrorHandling(async (request: Request) => {

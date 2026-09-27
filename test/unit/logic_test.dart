@@ -6,10 +6,13 @@ import 'package:creative_moments/core/services/api_client.dart';
 import 'package:creative_moments/core/services/weather_service.dart';
 import 'package:creative_moments/data/insights.dart';
 import 'package:creative_moments/data/models/moment.dart';
+import 'package:creative_moments/l10n/app_localizations.dart';
+import 'package:creative_moments/l10n/app_localizations_en.dart';
 import 'package:creative_moments/features/home/environment/evolution.dart';
 import 'package:creative_moments/features/moments/moment_detail_screen.dart';
 import 'package:creative_moments/features/world/constellation_layout.dart';
 import 'package:creative_moments/data/providers.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -50,9 +53,10 @@ void main() {
     });
 
     test('greetings follow the clock', () {
-      expect(greetingForHour(23), 'Good evening.');
-      expect(greetingForHour(9), 'Good morning.');
-      expect(promptForHour(23), 'What are you inspired by tonight?');
+      final l10n = AppLocalizationsEn();
+      expect(greetingForHour(l10n, 23), 'Good evening.');
+      expect(greetingForHour(l10n, 9), 'Good morning.');
+      expect(promptForHour(l10n, 23), 'What are you inspired by tonight?');
     });
 
     test('sky nightness moves gradually, not in steps', () {
@@ -68,12 +72,23 @@ void main() {
     });
   });
 
-  test('relativeDay names tonight, yesterday and weekdays', () {
+  testWidgets('relativeDay names tonight, yesterday and weekdays', (tester) async {
+    late BuildContext ctx;
+    await tester.pumpWidget(MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Builder(builder: (context) {
+        ctx = context;
+        return const SizedBox();
+      }),
+    ));
+    await tester.pump();
+
     final now = DateTime.now();
-    expect(relativeDay(DateTime(now.year, now.month, now.day, 23)), 'Tonight');
-    expect(relativeDay(DateTime(now.year, now.month, now.day, 9)), 'Today');
-    expect(relativeDay(now.subtract(const Duration(days: 1))), 'Yesterday');
-    expect(relativeDay(now.subtract(const Duration(days: 3))).length, greaterThan(3));
+    expect(relativeDay(ctx, DateTime(now.year, now.month, now.day, 23)), 'Tonight');
+    expect(relativeDay(ctx, DateTime(now.year, now.month, now.day, 9)), 'Today');
+    expect(relativeDay(ctx, now.subtract(const Duration(days: 1))), 'Yesterday');
+    expect(relativeDay(ctx, now.subtract(const Duration(days: 3))).length, greaterThan(3));
   });
 
   group('insights', () {

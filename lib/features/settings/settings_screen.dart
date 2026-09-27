@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/errors/app_error.dart';
+import '../../core/services/l10n_ext.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
 import '../../data/models/preferences.dart';
@@ -41,8 +42,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     await _edit((p) => p.copyWith(locationEnabled: on, weatherEnabled: on ? p.weatherEnabled : false));
   }
 
+  String _languageLabel(BuildContext context, String language) => switch (language) {
+    'it' => context.l10n.settingsLanguageItalian,
+    'en' => context.l10n.settingsLanguageEnglish,
+    _ => context.l10n.settingsLanguageSystem,
+  };
+
+  Future<void> _pickLanguage() async {
+    final current = ref.read(prefsProvider).language;
+    final chosen = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final code in const ['system', 'it', 'en'])
+              ListTile(
+                title: Text(_languageLabel(ctx, code)),
+                trailing: code == current ? const Icon(Icons.check_rounded) : null,
+                onTap: () => Navigator.pop(ctx, code),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (chosen != null && chosen != current) await _edit((q) => q.copyWith(language: chosen));
+  }
+
   Future<void> _logout() async {
-    final ok = await confirmDialog(context, title: 'Log out?', message: 'Your moments stay safe in your account.', confirmLabel: 'Log out');
+    final ok = await confirmDialog(
+      context,
+      title: context.l10n.settingsLogoutTitle,
+      message: context.l10n.settingsLogoutMessage,
+      confirmLabel: context.l10n.settingsLogoutConfirm,
+    );
     if (!ok) return;
     try {
       await ref.read(authRepoProvider).signOut();
@@ -56,7 +89,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (email == null) return;
     try {
       await ref.read(authRepoProvider).sendPasswordReset(email);
-      if (mounted) showSnack(context, 'We sent a password reset link to $email.');
+      if (mounted) showSnack(context, context.l10n.settingsResetLinkSent(email));
     } catch (e) {
       if (mounted) showSnack(context, friendlyError(e));
     }
@@ -65,9 +98,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _deleteMoments() async {
     final ok = await confirmDialog(
       context,
-      title: 'Delete all moments?',
-      message: 'Every moment, drawing and photo will be permanently removed. Your account stays.',
-      confirmLabel: 'Delete all',
+      title: context.l10n.settingsDeleteMomentsTitle,
+      message: context.l10n.settingsDeleteMomentsMessage,
+      confirmLabel: context.l10n.settingsDeleteMomentsConfirm,
       destructive: true,
     );
     if (!ok) return;
@@ -75,9 +108,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     try {
       await ref.read(momentRepoProvider).deleteAll(ref.read(sessionUserProvider)!.id);
       await ref.read(momentsProvider.notifier).refresh();
-      if (mounted) showSnack(context, 'All moments deleted.');
+      if (mounted) showSnack(context, context.l10n.settingsAllMomentsDeleted);
     } catch (e) {
-      if (mounted) showSnack(context, "That didn't finish. ${friendlyError(e)}");
+      if (mounted) showSnack(context, context.l10n.settingsDeleteMomentsFailed(friendlyError(e)));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -89,25 +122,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, set) => AlertDialog(
-          title: Text('Delete your account?', style: ctx.tt.headlineSmall),
+          title: Text(ctx.l10n.settingsDeleteAccountTitle, style: ctx.tt.headlineSmall),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('This permanently deletes your account, moments, drawings and photos. It cannot be undone.', style: ctx.tt.bodyMedium),
+              Text(ctx.l10n.settingsDeleteAccountWarning, style: ctx.tt.bodyMedium),
               const SizedBox(height: Sp.lg),
               TextField(
                 controller: ctl,
                 onChanged: (_) => set(() {}),
-                decoration: const InputDecoration(hintText: 'Type DELETE to confirm'),
+                decoration: InputDecoration(hintText: ctx.l10n.settingsDeleteAccountHint),
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(ctx.l10n.settingsCancel)),
             TextButton(
+              // Safety confirmation compares against the literal English word "DELETE" (not translated).
               onPressed: ctl.text.trim() == 'DELETE' ? () => Navigator.pop(ctx, true) : null,
-              child: Text('Delete forever', style: TextStyle(color: ctl.text.trim() == 'DELETE' ? ctx.cm.danger : null)),
+              child: Text(ctx.l10n.settingsDeleteForever, style: TextStyle(color: ctl.text.trim() == 'DELETE' ? ctx.cm.danger : null)),
             ),
           ],
         ),
@@ -123,7 +157,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         await ref.read(authRepoProvider).signOut();
       } catch (_) {}
     } catch (e) {
-      if (mounted) showSnack(context, "Your account couldn't be deleted. ${friendlyError(e)}");
+      if (mounted) showSnack(context, context.l10n.settingsDeleteAccountFailed(friendlyError(e)));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -166,41 +200,59 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return AtmoScaffold(
       intensity: 0.12,
       quality: 0.2,
-      appBar: AppBar(title: const Text('Settings'), leading: const BackButton()),
+      appBar: AppBar(title: Text(context.l10n.settingsTitle), leading: const BackButton()),
       body: SafeArea(
         child: Stack(
           children: [
             ListView(
               padding: const EdgeInsets.only(bottom: Sp.huge),
               children: [
-                header('Account'),
-                tile('Email', subtitle: user?.email ?? '', icon: Icons.mail_outline_rounded),
-                tile('Change password', subtitle: 'We will email you a secure link', icon: Icons.lock_outline_rounded, onTap: _resetPassword),
-                header('Appearance'),
+                header(context.l10n.settingsSectionAccount),
+                tile(context.l10n.settingsEmailTitle, subtitle: user?.email ?? '', icon: Icons.mail_outline_rounded),
+                tile(
+                  context.l10n.settingsChangePasswordTitle,
+                  subtitle: context.l10n.settingsChangePasswordSubtitle,
+                  icon: Icons.lock_outline_rounded,
+                  onTap: _resetPassword,
+                ),
+                header(context.l10n.settingsSectionAppearance),
                 sw(
-                  'Dark mode',
-                  'Light mode gives the pages a warm paper tone',
+                  context.l10n.settingsDarkModeTitle,
+                  context.l10n.settingsDarkModeSubtitle,
                   p.darkMode,
                   (v) => _edit((q) => q.copyWith(darkMode: v)),
                   Icons.dark_mode_outlined,
                 ),
                 sw(
-                  'Reduce motion',
-                  'Calmer, still environments and no entrance animations',
+                  context.l10n.settingsReduceMotionTitle,
+                  context.l10n.settingsReduceMotionSubtitle,
                   p.reduceMotion,
                   (v) => _edit((q) => q.copyWith(reduceMotion: v)),
                   Icons.motion_photos_off_outlined,
                 ),
                 tile(
-                  'Customize your Home',
-                  subtitle: 'Environment, time, atmosphere, density',
+                  context.l10n.settingsCustomizeHomeTitle,
+                  subtitle: context.l10n.settingsCustomizeHomeSubtitle,
                   icon: Icons.auto_awesome_outlined,
                   trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: () => context.push('/customize'),
                 ),
-                header('Location'),
-                sw('Location', 'Only used when you choose to add a place to a moment', p.locationEnabled, _toggleLocation, Icons.place_outlined),
-                sw('Weather in my world', 'Lets rain or clouds appear in Home. Needs location. Approximate area only.', p.weatherEnabled && p.locationEnabled, (
+                tile(
+                  context.l10n.settingsLanguageTitle,
+                  subtitle: _languageLabel(context, p.language),
+                  icon: Icons.language_outlined,
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: _pickLanguage,
+                ),
+                header(context.l10n.settingsSectionLocation),
+                sw(
+                  context.l10n.settingsLocationTitle,
+                  context.l10n.settingsLocationSubtitle,
+                  p.locationEnabled,
+                  _toggleLocation,
+                  Icons.place_outlined,
+                ),
+                sw(context.l10n.settingsWeatherTitle, context.l10n.settingsWeatherSubtitle, p.weatherEnabled && p.locationEnabled, (
                   v,
                 ) async {
                   if (v && !p.locationEnabled) await _toggleLocation(true);
@@ -209,17 +261,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   await _edit((q) => q.copyWith(weatherEnabled: v));
                   ref.invalidate(weatherProvider);
                 }, Icons.cloud_outlined),
-                header('Privacy'),
+                header(context.l10n.settingsSectionPrivacy),
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: Sp.xl),
                   child: _PrivacyNote(),
                 ),
-                tile('Delete all my moments', icon: Icons.delete_sweep_outlined, color: c.danger, onTap: _busy ? null : _deleteMoments),
-                header('Session'),
-                tile('Log out', icon: Icons.logout_rounded, onTap: _logout),
                 tile(
-                  'Delete account',
-                  subtitle: 'Permanently removes everything',
+                  context.l10n.settingsDeleteMomentsTileTitle,
+                  icon: Icons.delete_sweep_outlined,
+                  color: c.danger,
+                  onTap: _busy ? null : _deleteMoments,
+                ),
+                header(context.l10n.settingsSectionSession),
+                tile(context.l10n.settingsLogoutTileTitle, icon: Icons.logout_rounded, onTap: _logout),
+                tile(
+                  context.l10n.settingsDeleteAccountTileTitle,
+                  subtitle: context.l10n.settingsDeleteAccountTileSubtitle,
                   icon: Icons.delete_forever_outlined,
                   color: c.danger,
                   onTap: _busy ? null : _deleteAccount,
@@ -244,7 +301,7 @@ class _PrivacyNote extends StatelessWidget {
   const _PrivacyNote();
   @override
   Widget build(BuildContext context) => Text(
-    'Everything you create is private by default. Only you can read your moments, drawings and photos; access is enforced by the database itself. Nothing is public and there is no social feed.',
+    context.l10n.settingsPrivacyNote,
     style: context.tt.bodyMedium?.copyWith(color: context.cm.muted, height: 1.5),
   );
 }
