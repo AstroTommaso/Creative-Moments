@@ -6,7 +6,6 @@ import 'package:creative_moments/core/services/api_client.dart';
 import 'package:creative_moments/core/services/weather_service.dart';
 import 'package:creative_moments/data/insights.dart';
 import 'package:creative_moments/data/models/moment.dart';
-import 'package:creative_moments/l10n/app_localizations.dart';
 import 'package:creative_moments/l10n/app_localizations_en.dart';
 import 'package:creative_moments/features/home/environment/evolution.dart';
 import 'package:creative_moments/features/home/home_screen.dart';
@@ -14,9 +13,9 @@ import 'package:creative_moments/features/moments/export_moment.dart';
 import 'package:creative_moments/features/moments/moment_detail_screen.dart';
 import 'package:creative_moments/features/world/constellation_layout.dart';
 import 'package:creative_moments/data/providers.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 Moment mk(
   String id, {
@@ -78,25 +77,6 @@ void main() {
       expect(SkyPalette.hourFor('night'), 23);
       expect(SkyPalette.hourFor('auto'), isNull);
     });
-  });
-
-  testWidgets('relativeDay names tonight, yesterday and weekdays', (tester) async {
-    late BuildContext ctx;
-    await tester.pumpWidget(MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Builder(builder: (context) {
-        ctx = context;
-        return const SizedBox();
-      }),
-    ));
-    await tester.pump();
-
-    final now = DateTime.now();
-    expect(relativeDay(ctx, DateTime(now.year, now.month, now.day, 23)), 'Tonight');
-    expect(relativeDay(ctx, DateTime(now.year, now.month, now.day, 9)), 'Today');
-    expect(relativeDay(ctx, now.subtract(const Duration(days: 1))), 'Yesterday');
-    expect(relativeDay(ctx, now.subtract(const Duration(days: 3))).length, greaterThan(3));
   });
 
   group('insights', () {
@@ -191,6 +171,11 @@ void main() {
   });
 
   group('export', () {
+    // momentExportText formats a locale-aware date; in the real app this is
+    // always initialized by Flutter's own localization binding at startup,
+    // but a plain test() needs it done explicitly.
+    setUpAll(() => initializeDateFormatting());
+
     test('momentExportText includes title, mood, place, music, body and answered questions', () {
       final m = Moment(
         id: 'm',

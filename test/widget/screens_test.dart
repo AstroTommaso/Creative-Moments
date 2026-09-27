@@ -431,20 +431,16 @@ void main() {
       expect(staticCenter.dx, lessThan(morningCenter.dx));
     });
 
-    testWidgets('relive reconstructs the atmosphere in a new full-screen scene', (tester) async {
+    testWidgets('the header reconstructs the atmosphere the moment was made in', (tester) async {
       final b = signedInBackend(seed: true);
       final m = b.moments.values.firstWhere((e) => e.title == 'Loneliness, but peaceful');
       await pumpScreen(tester, b, MomentDetailScreen(id: m.id));
-      await tester.tap(find.byIcon(Icons.auto_awesome_outlined));
-      await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
-      expect(find.byIcon(Icons.close_rounded), findsOneWidget);
-      // Music rendered as one combined line — proof this is the relive
-      // screen's own layout, not the detail screen still underneath.
-      expect(find.text('Nuvole Bianche · Ludovico Einaudi'), findsOneWidget);
-      await tester.tap(find.byIcon(Icons.close_rounded));
-      await tester.pumpAndSettle();
-      expect(find.text('INSPIRED BY'), findsOneWidget);
+      // The title now lives in the atmospheric header itself, replacing the
+      // separate heading further down the page — no more duplicate, and no
+      // more separate button/screen to reach it.
+      expect(find.byIcon(Icons.auto_awesome_outlined), findsNothing);
+      expect(find.text('Loneliness, but peaceful'), findsOneWidget);
     });
 
     testWidgets('delete asks first, then removes the moment', (tester) async {

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/animations/sky.dart';
 import '../../core/constants/catalog.dart';
 import '../../core/errors/app_error.dart';
 import '../../core/services/l10n_ext.dart';
@@ -18,9 +19,9 @@ import '../../shared/widgets/motion.dart';
 import '../../shared/widgets/signed_image.dart';
 import '../../shared/widgets/ui.dart';
 import '../creation/draft.dart';
+import '../home/environment/environment_scene.dart';
 import '../world/constellation_layout.dart';
 import 'export_moment.dart';
-import 'relive_screen.dart';
 
 final _momentFetchProvider = FutureProvider.family<Moment?, String>((ref, id) => ref.read(momentRepoProvider).get(id));
 
@@ -36,17 +37,6 @@ List<Moment> relatedMoments(Moment target, List<Moment> all, {int max = 3, doubl
   }
   scored.sort((a, b) => b.$2.compareTo(a.$2));
   return [for (final (m, _) in scored.take(max)) m];
-}
-
-String relativeDay(BuildContext context, DateTime d) {
-  final l10n = context.l10n;
-  final now = DateTime.now();
-  final today = DateTime(now.year, now.month, now.day);
-  final day = DateTime(d.year, d.month, d.day);
-  final diff = today.difference(day).inDays;
-  if (diff == 0) return d.hour >= 18 || d.hour < 5 ? l10n.momentDetailTonight : l10n.momentDetailToday;
-  if (diff == 1) return l10n.momentDetailYesterday;
-  return DateFormat('EEEE', Localizations.localeOf(context).toString()).format(d);
 }
 
 class MomentDetailScreen extends ConsumerWidget {
@@ -137,10 +127,6 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
     context.push('/create/edit');
   }
 
-  void _relive() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => ReliveMomentScreen(moment: widget.moment)));
-  }
-
   Future<void> _export() async {
     final l10n = context.l10n;
     final choice = await showModalBottomSheet<String>(
@@ -185,6 +171,9 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
     final related = relatedMoments(m, ref.watch(momentsProvider).value ?? const []);
     final time = DateFormat('HH:mm', locale).format(m.createdAt);
     final date = DateFormat('MMMM d, y', locale).format(m.createdAt);
+    final envIds = environmentOptions.map((o) => o.id).toSet();
+    final heroEnvs = m.inspirationTypes.where(envIds.contains).toList();
+    final heroHour = SkyPalette.hourFor(m.timeOfDay ?? 'auto');
     int i = 0;
     Widget stagger(Widget w) => FadeSlide(index: i++, child: w);
 
@@ -196,7 +185,7 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
             slivers: [
               SliverAppBar(
                 pinned: true,
-                expandedHeight: MediaQuery.of(context).size.height * 0.42,
+                expandedHeight: MediaQuery.of(context).size.height * 0.56,
                 backgroundColor: c.bg,
                 surfaceTintColor: Colors.transparent,
                 leading: Padding(
@@ -204,10 +193,6 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
                   child: _RoundBtn(icon: Icons.arrow_back_rounded, label: l10n.momentDetailBack, onTap: () => context.pop()),
                 ),
                 actions: [
-                  Padding(
-                    padding: const EdgeInsets.all(6),
-                    child: _RoundBtn(icon: Icons.auto_awesome_outlined, label: l10n.momentDetailReliveAction, onTap: _relive),
-                  ),
                   Padding(
                     padding: const EdgeInsets.all(6),
                     child: PopupMenuButton<String>(
@@ -249,7 +234,61 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
                       type: MaterialType.transparency,
                       child: RepaintBoundary(
                         key: _artworkKey,
-                        child: SizedBox.expand(child: MomentArtwork(moment: m)),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            EnvironmentScene(
+                              overrideEnvironments: heroEnvs.isEmpty ? const ['moon'] : heroEnvs,
+                              overrideAtmosphere: m.atmosphere ?? 'dreamy',
+                              overrideHour: heroHour,
+                            ),
+                            IgnorePointer(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    stops: const [0.35, 1],
+                                    colors: [Colors.transparent, Colors.black.withValues(alpha: 0.6)],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Align(
+                              alignment: Alignment.bottomLeft,
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(Sp.xl, 0, Sp.xl, Sp.xl),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      '$date · $time',
+                                      style: AppType.ui(13, weight: FontWeight.w700, color: Colors.white70, letterSpacing: 1.1),
+                                    ),
+                                    const SizedBox(height: Sp.sm),
+                                    Text(
+                                      m.displayTitle(l10n),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: AppType.display(34, color: Colors.white, height: 1.05),
+                                    ),
+                                    if (drawing == null && m.images.isEmpty && m.excerpt.isNotEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: Sp.sm),
+                                        child: Text(
+                                          m.excerpt,
+                                          maxLines: 3,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: AppType.display(17, style: FontStyle.italic, color: Colors.white.withValues(alpha: 0.85), height: 1.3),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -261,13 +300,6 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      stagger(Text(relativeDay(context, m.createdAt), style: AppType.display(54, color: c.text, height: 1))),
-                      stagger(
-                        Padding(
-                          padding: const EdgeInsets.only(top: Sp.sm),
-                          child: Text('$date · $time', style: tt.bodyMedium?.copyWith(color: c.muted)),
-                        ),
-                      ),
                       stagger(
                         Padding(
                           padding: const EdgeInsets.only(top: Sp.lg),
@@ -319,16 +351,6 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
                           ),
                         ),
                       const SizedBox(height: Sp.xl),
-                      if (m.title.trim().isNotEmpty)
-                        stagger(
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: Sp.lg),
-                            child: Text(
-                              m.title,
-                              style: AppType.display(36, weight: FontWeight.w700, color: c.text, height: 1.1),
-                            ),
-                          ),
-                        ),
                       if (drawing != null && !drawing.isEmpty)
                         stagger(
                           Padding(
