@@ -422,5 +422,10 @@
   "momentDetailRelatedHeader": "Questo mi ricorda",
   "profileSectionMusic": "Musica a cui torni",
   "homeOnThisDayLabel": "{years, plural, one{Un anno fa} other{{years} anni fa}}",
-  "homeOnThisDaySemanticLabel": "In questo giorno: {title}"
+  "homeOnThisDaySemanticLabel": "In questo giorno: {title}",
+  "momentDetailExportAction": "Esporta",
+  "momentDetailExportImage": "Immagine",
+  "momentDetailExportPdf": "PDF",
+  "momentDetailExportText": "Testo",
+  "momentDetailExportFailed": "Non è stato possibile esportarlo. {error}"
 }

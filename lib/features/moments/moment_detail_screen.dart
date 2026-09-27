@@ -19,6 +19,7 @@ import '../../shared/widgets/signed_image.dart';
 import '../../shared/widgets/ui.dart';
 import '../creation/draft.dart';
 import '../world/constellation_layout.dart';
+import 'export_moment.dart';
 
 final _momentFetchProvider = FutureProvider.family<Moment?, String>((ref, id) => ref.read(momentRepoProvider).get(id));
 
@@ -93,6 +94,7 @@ class _DetailBody extends ConsumerStatefulWidget {
 class _DetailBodyState extends ConsumerState<_DetailBody> {
   bool _showKept = false;
   Timer? _keptTimer;
+  final _artworkKey = GlobalKey();
 
   @override
   void initState() {
@@ -134,6 +136,38 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
     context.push('/create/edit');
   }
 
+  Future<void> _export() async {
+    final l10n = context.l10n;
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(leading: const Icon(Icons.image_outlined), title: Text(l10n.momentDetailExportImage), onTap: () => Navigator.pop(ctx, 'image')),
+            ListTile(leading: const Icon(Icons.picture_as_pdf_outlined), title: Text(l10n.momentDetailExportPdf), onTap: () => Navigator.pop(ctx, 'pdf')),
+            ListTile(leading: const Icon(Icons.notes_rounded), title: Text(l10n.momentDetailExportText), onTap: () => Navigator.pop(ctx, 'text')),
+          ],
+        ),
+      ),
+    );
+    if (choice == null || !mounted) return;
+    final locale = Localizations.localeOf(context).toString();
+    try {
+      switch (choice) {
+        case 'image':
+          await exportMomentAsImage(_artworkKey);
+        case 'pdf':
+          await exportMomentAsPdf(widget.moment, l10n, locale);
+        default:
+          await exportMomentAsText(widget.moment, l10n, locale);
+      }
+    } catch (e) {
+      if (mounted) showSnack(context, l10n.momentDetailExportFailed(friendlyError(e)));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final m = widget.moment;
@@ -171,11 +205,24 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
                       tooltip: l10n.momentDetailMoreTooltip,
                       color: c.surfaceHigh,
                       icon: const _RoundIcon(icon: Icons.more_horiz_rounded),
-                      onSelected: (v) => v == 'edit' ? _edit() : _delete(),
+                      onSelected: (v) {
+                        switch (v) {
+                          case 'edit':
+                            _edit();
+                          case 'export':
+                            _export();
+                          default:
+                            _delete();
+                        }
+                      },
                       itemBuilder: (_) => [
                         PopupMenuItem(
                           value: 'edit',
                           child: Text(l10n.momentDetailEditAction, style: AppType.ui(14, color: c.text)),
+                        ),
+                        PopupMenuItem(
+                          value: 'export',
+                          child: Text(l10n.momentDetailExportAction, style: AppType.ui(14, color: c.text)),
                         ),
                         PopupMenuItem(
                           value: 'delete',
@@ -191,7 +238,10 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
                     tag: 'moment-art-${m.id}',
                     child: Material(
                       type: MaterialType.transparency,
-                      child: SizedBox.expand(child: MomentArtwork(moment: m)),
+                      child: RepaintBoundary(
+                        key: _artworkKey,
+                        child: SizedBox.expand(child: MomentArtwork(moment: m)),
+                      ),
                     ),
                   ),
                 ),

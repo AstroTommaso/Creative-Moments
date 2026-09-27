@@ -598,5 +598,17 @@
         "type": "String"
       }
     }
+  },
+  "momentDetailExportAction": "Export",
+  "momentDetailExportImage": "Image",
+  "momentDetailExportPdf": "PDF",
+  "momentDetailExportText": "Text",
+  "momentDetailExportFailed": "That couldn't be exported. {error}",
+  "@momentDetailExportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
   }
 }

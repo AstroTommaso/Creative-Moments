@@ -10,6 +10,7 @@ import 'package:creative_moments/l10n/app_localizations.dart';
 import 'package:creative_moments/l10n/app_localizations_en.dart';
 import 'package:creative_moments/features/home/environment/evolution.dart';
 import 'package:creative_moments/features/home/home_screen.dart';
+import 'package:creative_moments/features/moments/export_moment.dart';
 import 'package:creative_moments/features/moments/moment_detail_screen.dart';
 import 'package:creative_moments/features/world/constellation_layout.dart';
 import 'package:creative_moments/data/providers.dart';
@@ -186,6 +187,49 @@ void main() {
     test('empty and single-moment histories do not crash', () {
       expect(layoutConstellation(const []).nodes, isEmpty);
       expect(layoutConstellation([mk('a')]).nodes.length, 1);
+    });
+  });
+
+  group('export', () {
+    test('momentExportText includes title, mood, place, music, body and answered questions', () {
+      final m = Moment(
+        id: 'm',
+        userId: 'u',
+        title: 'Rain on the window',
+        type: CreationType.writing,
+        mood: 'melancholic',
+        locationName: 'Milano',
+        musicTitle: 'Nuvole Bianche',
+        musicArtist: 'Einaudi',
+        createdAt: DateTime(2026, 9, 27, 22, 10),
+        updatedAt: DateTime(2026, 9, 27, 22, 10),
+        creations: [Creation(id: 'c', momentId: 'm', type: 'text', textContent: 'The rain keeps asking.', createdAt: DateTime(2026, 9, 27, 22, 10))],
+        prompts: const [PromptAnswer(id: 'p', question: 'Is the rain part of it?', answer: 'Yes.')],
+      );
+      final text = momentExportText(m, AppLocalizationsEn(), 'en');
+      expect(text, contains('Rain on the window'));
+      expect(text, contains('Melancholic'));
+      expect(text, contains('📍 Milano'));
+      expect(text, contains('🎧 Nuvole Bianche — Einaudi'));
+      expect(text, contains('The rain keeps asking.'));
+      expect(text, contains('Is the rain part of it?'));
+      expect(text, contains('“Yes.”'));
+    });
+
+    test('momentExportText skips unanswered prompts and empty fields', () {
+      final m = Moment(
+        id: 'm',
+        userId: 'u',
+        title: '',
+        type: CreationType.freeform,
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+        prompts: const [PromptAnswer(id: 'p', question: 'Skipped?', answer: null)],
+      );
+      final text = momentExportText(m, AppLocalizationsEn(), 'en');
+      expect(text, isNot(contains('Skipped?')));
+      expect(text, isNot(contains('📍')));
+      expect(text, isNot(contains('🎧')));
     });
   });
 
