@@ -37,10 +37,10 @@ class WelcomeScreen extends StatelessWidget {
                   style: AppType.ui(17, color: Colors.white.withValues(alpha: 0.82), height: 1.5),
                 ),
                 const Spacer(flex: 2),
-                PrimaryButton(label: 'Begin', onPressed: () => context.go('/register')),
+                PrimaryButton(label: 'Begin', onPressed: () => context.push('/register')),
                 const SizedBox(height: Sp.sm),
                 Center(
-                  child: GhostButton(label: 'I already have an account', color: Colors.white, onPressed: () => context.go('/login')),
+                  child: GhostButton(label: 'I already have an account', color: Colors.white, onPressed: () => context.push('/login')),
                 ),
               ],
             ),
