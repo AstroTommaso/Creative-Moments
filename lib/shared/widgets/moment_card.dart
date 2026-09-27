@@ -9,6 +9,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/theme/typography.dart';
 import '../../data/models/moment.dart';
 import 'drawing_view.dart';
+import 'moment_cover.dart';
 import 'signed_image.dart';
 
 /// Each moment keeps its own atmosphere: sky of the hour it was made in,
@@ -65,7 +66,7 @@ class MomentArtwork extends StatelessWidget {
         ),
       );
     } else {
-      content = Center(child: Text(moment.type.emoji, style: const TextStyle(fontSize: 42)));
+      content = MomentCover(moment: moment);
     }
     return Container(
       decoration: BoxDecoration(gradient: momentGradient(moment)),
