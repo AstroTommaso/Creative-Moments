@@ -22,11 +22,15 @@ const schema = z.object({
 export const PUT = withErrorHandling(async (request: Request, { params }: RouteParams) => {
   const user = await requireUser(request);
   const { id } = await params;
-  await requireOwnedMoment(user.id, id); // 404s if not owned
+  const existing = await requireOwnedMoment(user.id, id); // 404s if not owned
 
   const { inspirations, prompts } = schema.parse(await request.json());
 
   await prisma.$transaction(async (tx) => {
+    // First call to reach here is the user explicitly finishing the moment;
+    // later edits (re-opening and saving again) keep the original timestamp.
+    await tx.moment.update({ where: { id }, data: { finishedAt: existing.finishedAt ?? new Date() } });
+
     await tx.inspiration.deleteMany({ where: { momentId: id } });
     await tx.prompt.deleteMany({ where: { momentId: id } }); // cascades to answers
 

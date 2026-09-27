@@ -186,7 +186,7 @@ class _ConstellationViewState extends State<ConstellationView> with SingleTicker
                           : Glass(
                               key: ValueKey(sel.id),
                               onTap: () => context.push('/moment/${sel.id}'),
-                              semanticLabel: l10n.constellationOpenLabel(sel.displayTitle),
+                              semanticLabel: l10n.constellationOpenLabel(sel.displayTitle(l10n)),
                               child: Row(
                                 children: [
                                   Container(
@@ -204,7 +204,7 @@ class _ConstellationViewState extends State<ConstellationView> with SingleTicker
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          sel.displayTitle,
+                                          sel.displayTitle(l10n),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: AppType.display(22, weight: FontWeight.w700, color: c.text),

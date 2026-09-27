@@ -567,5 +567,18 @@
   "settingsLanguageTitle": "Language",
   "settingsLanguageSystem": "System",
   "settingsLanguageItalian": "Italiano",
-  "settingsLanguageEnglish": "English"
+  "settingsLanguageEnglish": "English",
+  "momentFallbackNight": "A night moment",
+  "momentFallbackDawn": "An early moment",
+  "momentFallbackSunset": "A sunset moment",
+  "momentFallbackUntitled": "Untitled moment",
+  "homeContinueCreatingHeader": "Continue creating",
+  "homeContinueMomentSemanticLabel": "Continue {title}",
+  "@homeContinueMomentSemanticLabel": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  }
 }

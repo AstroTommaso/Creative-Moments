@@ -89,11 +89,15 @@ class MomentArtwork extends StatelessWidget {
 }
 
 class MomentCard extends StatelessWidget {
-  const MomentCard({super.key, required this.moment, this.width, this.height = 250, this.compact = false});
+  const MomentCard({super.key, required this.moment, this.width, this.height = 250, this.compact = false, this.onTap, this.semanticLabel});
   final Moment moment;
   final double? width;
   final double height;
   final bool compact;
+  /// Defaults to opening the moment's detail screen; override to reuse this
+  /// card's visuals for a different action (e.g. resuming a draft).
+  final VoidCallback? onTap;
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -102,9 +106,9 @@ class MomentCard extends StatelessWidget {
     final insp = moment.inspirations.take(3).map((e) => e.emoji).join(' ');
     return Semantics(
       button: true,
-      label: context.l10n.cardSemanticLabel(moment.displayTitle, moment.type.label(context.l10n), when),
+      label: semanticLabel ?? context.l10n.cardSemanticLabel(moment.displayTitle(context.l10n), moment.type.label(context.l10n), when),
       child: GestureDetector(
-        onTap: () => context.push('/moment/${moment.id}'),
+        onTap: onTap ?? () => context.push('/moment/${moment.id}'),
         child: Container(
           width: width,
           height: height,
@@ -135,7 +139,7 @@ class MomentCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      moment.displayTitle,
+                      moment.displayTitle(context.l10n),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppType.display(20, weight: FontWeight.w700, color: c.text),

@@ -51,6 +51,7 @@ export async function serializeMoment(moment: MomentWithRelations) {
     musicArtworkUrl: moment.musicArtworkUrl,
     createdAt: moment.createdAt,
     updatedAt: moment.updatedAt,
+    finishedAt: moment.finishedAt,
     creations: moment.creations.map((c) => ({
       id: c.id,
       momentId: c.momentId,

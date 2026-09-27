@@ -412,5 +412,11 @@
   "settingsLanguageTitle": "Lingua",
   "settingsLanguageSystem": "Sistema",
   "settingsLanguageItalian": "Italiano",
-  "settingsLanguageEnglish": "English"
+  "settingsLanguageEnglish": "English",
+  "momentFallbackNight": "Un momento notturno",
+  "momentFallbackDawn": "Un momento mattutino",
+  "momentFallbackSunset": "Un momento al tramonto",
+  "momentFallbackUntitled": "Momento senza titolo",
+  "homeContinueCreatingHeader": "Continua a creare",
+  "homeContinueMomentSemanticLabel": "Continua {title}"
 }

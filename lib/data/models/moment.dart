@@ -1,4 +1,5 @@
 import '../../core/constants/catalog.dart';
+import '../../l10n/app_localizations.dart';
 import 'drawing.dart';
 
 DateTime _dt(dynamic v) => DateTime.parse(v as String).toLocal();
@@ -72,6 +73,7 @@ class Moment {
     this.musicArtworkUrl,
     required this.createdAt,
     required this.updatedAt,
+    this.finishedAt,
     this.creations = const [],
     this.inspirations = const [],
     this.prompts = const [],
@@ -83,6 +85,9 @@ class Moment {
   final String? mood, atmosphere, timeOfDay, locationName, musicTitle, musicArtist, musicAlbum, musicArtworkUrl;
   final double? latitude, longitude;
   final DateTime createdAt, updatedAt;
+  /// Set once the user explicitly finished it (details/save step); null
+  /// means it only exists from autosave and is still a work in progress.
+  final DateTime? finishedAt;
   final List<Creation> creations;
   final List<Inspiration> inspirations;
   final List<PromptAnswer> prompts;
@@ -107,6 +112,7 @@ class Moment {
       musicArtworkUrl: j['musicArtworkUrl'] as String?,
       createdAt: _dt(j['createdAt']),
       updatedAt: _dt(j['updatedAt']),
+      finishedAt: j['finishedAt'] == null ? null : _dt(j['finishedAt']),
       creations: list('creations', Creation.fromJson),
       inspirations: list('inspirations', Inspiration.fromJson),
       prompts: list('prompts', PromptAnswer.fromJson),
@@ -119,18 +125,21 @@ class Moment {
   List<MediaItem> get images => media.where((m) => m.type == 'image').toList();
   bool get hasMusic => (musicTitle ?? '').isNotEmpty;
   bool get hasLocation => (locationName ?? '').isNotEmpty;
-  String get displayTitle => title.trim().isEmpty ? _fallbackTitle : title.trim();
-  String get _fallbackTitle {
+  /// Whether this only exists from autosave and was never explicitly saved.
+  bool get isDraft => finishedAt == null;
+
+  String displayTitle(AppLocalizations l10n) => title.trim().isEmpty ? _fallbackTitle(l10n) : title.trim();
+  String _fallbackTitle(AppLocalizations l10n) {
     final t = text.trim();
     if (t.isNotEmpty) {
       final line = t.split('\n').first;
       return line.length > 40 ? '${line.substring(0, 40)}…' : line;
     }
     return switch (timeOfDay) {
-      'night' => 'A night moment',
-      'dawn' => 'An early moment',
-      'sunset' => 'A sunset moment',
-      _ => 'Untitled moment',
+      'night' => l10n.momentFallbackNight,
+      'dawn' => l10n.momentFallbackDawn,
+      'sunset' => l10n.momentFallbackSunset,
+      _ => l10n.momentFallbackUntitled,
     };
   }
 

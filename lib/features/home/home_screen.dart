@@ -17,6 +17,7 @@ import '../../data/providers.dart';
 import '../../shared/widgets/moment_card.dart';
 import '../../shared/widgets/motion.dart';
 import '../../shared/widgets/ui.dart';
+import '../creation/draft.dart';
 import 'environment/environment_scene.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -40,6 +41,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _scroll.dispose();
     _parallax.dispose();
     super.dispose();
+  }
+
+  void _continueDraft(Moment m) {
+    ref.read(draftProvider.notifier).loadExisting(m);
+    context.push('/create/edit');
   }
 
   @override
@@ -114,6 +120,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 ),
                 SliverToBoxAdapter(
+                  child: Builder(
+                    builder: (context) {
+                      final drafts = (moments.value ?? const []).where((m) => m.isDraft).toList();
+                      if (drafts.isEmpty) return const SizedBox.shrink();
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(Sp.xl, Sp.xxl + Sp.lg, Sp.xl, Sp.md),
+                            child: Text(
+                              context.l10n.homeContinueCreatingHeader,
+                              style: AppType.ui(13, weight: FontWeight.w800, color: white.withValues(alpha: 0.75), letterSpacing: 1.2),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 310,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.symmetric(horizontal: Sp.xl),
+                              itemCount: drafts.length,
+                              separatorBuilder: (_, _) => const SizedBox(width: Sp.md),
+                              itemBuilder: (_, i) => FadeSlide(
+                                index: i.clamp(0, 4),
+                                child: MomentCard(
+                                  moment: drafts[i],
+                                  width: 232,
+                                  height: 300,
+                                  compact: true,
+                                  onTap: () => _continueDraft(drafts[i]),
+                                  semanticLabel: context.l10n.homeContinueMomentSemanticLabel(drafts[i].displayTitle(context.l10n)),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+                SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(Sp.xl, Sp.xxl + Sp.lg, Sp.xl, Sp.md),
                     child: Text(
@@ -151,7 +197,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                       ),
                     ),
-                    data: (list) {
+                    data: (all) {
+                      final list = all.where((m) => !m.isDraft).toList();
                       if (list.isEmpty) {
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: Sp.xl),
@@ -326,7 +373,7 @@ class _StarFieldState extends ConsumerState<_StarField> with TickerProviderState
                         height: 48,
                         child: Semantics(
                           button: true,
-                          label: context.l10n.homeOpenMomentSemanticLabel(m.displayTitle),
+                          label: context.l10n.homeOpenMomentSemanticLabel(m.displayTitle(context.l10n)),
                           child: GestureDetector(behavior: HitTestBehavior.translucent, onTap: () => context.push('/moment/${m.id}')),
                         ),
                       ),

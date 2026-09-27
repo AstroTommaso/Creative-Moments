@@ -4,6 +4,7 @@ import 'package:creative_moments/core/constants/catalog.dart';
 import 'package:creative_moments/core/theme/app_theme.dart';
 import 'package:creative_moments/core/theme/tokens.dart';
 import 'package:creative_moments/core/theme/typography.dart';
+import 'package:creative_moments/data/models/moment.dart';
 import 'package:creative_moments/data/providers.dart';
 import 'package:creative_moments/dev/fake_backend.dart';
 import 'package:creative_moments/features/creation/create_type_screen.dart';
@@ -123,6 +124,30 @@ void main() {
       await tester.tap(find.text('Loneliness, but peaceful'));
       await tester.pumpAndSettle();
       expect(find.textContaining('MOMENT '), findsOneWidget);
+    });
+
+    testWidgets('drafts appear under Continue creating and resume in the editor', (tester) async {
+      final b = signedInBackend(seed: true);
+      final userId = b.users[b.currentEmail]!.id;
+      const draftId = 'draft-1';
+      b.moments[draftId] = Moment(
+        id: draftId,
+        userId: userId,
+        title: 'Halfway there',
+        type: CreationType.writing,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      final c = await pumpScreen(tester, b, const HomeScreen(), size: const Size(390, 1400));
+      expect(find.text('Continue creating'), findsOneWidget);
+      expect(find.text('Halfway there'), findsOneWidget);
+      // A finished moment must never show up in the drafts row.
+      expect(find.text('Loneliness, but peaceful'), findsNothing);
+      await tapVisible(tester, find.text('Halfway there'));
+      await tester.pumpAndSettle();
+      expect(c.read(draftProvider).isEditing, isTrue);
+      expect(c.read(draftProvider).id, draftId);
+      expect(find.text('EDIT ROUTE'), findsOneWidget);
     });
 
     testWidgets('gives every recent moment a tappable star in the sky', (tester) async {

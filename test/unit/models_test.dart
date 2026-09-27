@@ -2,7 +2,10 @@ import 'package:creative_moments/core/constants/catalog.dart';
 import 'package:creative_moments/data/models/drawing.dart';
 import 'package:creative_moments/data/models/moment.dart';
 import 'package:creative_moments/data/models/preferences.dart';
+import 'package:creative_moments/l10n/app_localizations_en.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+final _en = AppLocalizationsEn();
 
 Map<String, dynamic> momentJson({Map<String, dynamic>? extra}) => {
   'id': 'm1',
@@ -68,9 +71,9 @@ void main() {
     });
 
     test('displayTitle falls back to first line of text, then to time of day', () {
-      expect(Moment.fromJson(momentJson()).displayTitle, 'Tonight');
-      expect(Moment.fromJson(momentJson(extra: {'title': ''})).displayTitle, 'Hello');
-      expect(Moment.fromJson(momentJson(extra: {'title': '', 'creations': []})).displayTitle, 'A night moment');
+      expect(Moment.fromJson(momentJson()).displayTitle(_en), 'Tonight');
+      expect(Moment.fromJson(momentJson(extra: {'title': ''})).displayTitle(_en), 'Hello');
+      expect(Moment.fromJson(momentJson(extra: {'title': '', 'creations': []})).displayTitle(_en), 'A night moment');
       final long = Moment.fromJson(
         momentJson(
           extra: {
@@ -81,7 +84,12 @@ void main() {
           },
         ),
       );
-      expect(long.displayTitle.length, lessThanOrEqualTo(41));
+      expect(long.displayTitle(_en).length, lessThanOrEqualTo(41));
+    });
+
+    test('isDraft reflects whether the moment was ever explicitly finished', () {
+      expect(Moment.fromJson(momentJson()).isDraft, isTrue);
+      expect(Moment.fromJson(momentJson(extra: {'finishedAt': '2026-09-25T21:41:00Z'})).isDraft, isFalse);
     });
 
     test('excerpt collapses whitespace and truncates', () {

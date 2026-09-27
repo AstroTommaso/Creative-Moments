@@ -86,6 +86,9 @@ model Moment {
   musicArtworkUrl  String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+  /// Set once the user explicitly finishes it (via the details/save step);
+  /// null means it only exists from autosave and is still a draft.
+  finishedAt       DateTime?
 
   creations    Creation[]
   inspirations Inspiration[]
