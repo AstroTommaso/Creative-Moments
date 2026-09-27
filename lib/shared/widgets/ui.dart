@@ -21,16 +21,21 @@ class Glass extends StatelessWidget {
     this.opacity = 0.09,
     this.onTap,
     this.semanticLabel,
+    this.onLightBackdrop,
   });
   final Widget child;
   final EdgeInsetsGeometry padding;
   final double radius, blur, opacity;
   final VoidCallback? onTap;
   final String? semanticLabel;
+  /// Set this when the glass sits over something whose lightness isn't the
+  /// app's own theme (e.g. a user-chosen canvas/paper colour), so it tints
+  /// for contrast against that instead of guessing from dark/light mode.
+  final bool? onLightBackdrop;
 
   @override
   Widget build(BuildContext context) {
-    final dark = context.cm.isDark;
+    final dark = onLightBackdrop == null ? context.cm.isDark : !onLightBackdrop!;
     final base = dark ? Colors.white : Colors.black;
     Widget w = ClipRRect(
       borderRadius: BorderRadius.circular(radius),

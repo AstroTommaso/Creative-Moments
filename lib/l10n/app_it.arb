@@ -279,7 +279,6 @@
   "drawingPaperNight": "Notte",
   "drawingPaperInk": "Inchiostro",
   "drawingPaperCream": "Crema",
-  "drawingPaperPaper": "Carta",
   "drawingClearButtonLabel": "Cancella la tela",
   "drawingFullScreenLabel": "Schermo intero",
   "drawingExitFullScreenLabel": "Esci da schermo intero",
@@ -428,5 +427,11 @@
   "momentDetailExportPdf": "PDF",
   "momentDetailExportText": "Testo",
   "momentDetailExportFailed": "Non è stato possibile esportarlo. {error}",
-  "momentDetailReliveAction": "Rivivi questo momento"
+  "momentDetailReliveAction": "Rivivi questo momento",
+  "drawingPaperBlueprint": "Progetto",
+  "drawingPaperChalkboard": "Lavagna",
+  "drawingPaperKraft": "Kraft",
+  "drawingPaperBlush": "Rosa cipria",
+  "drawingPaperMint": "Menta",
+  "drawingPaperSnow": "Neve"
 }

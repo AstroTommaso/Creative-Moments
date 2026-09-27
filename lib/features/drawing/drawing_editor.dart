@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/services/l10n_ext.dart';
 import '../../core/theme/tokens.dart';
-import '../../core/theme/typography.dart';
 import '../../data/models/drawing.dart';
 import '../../l10n/app_localizations.dart';
 import '../../shared/widgets/drawing_view.dart';
@@ -13,9 +12,19 @@ import '../../shared/widgets/ui.dart';
 final paperColors = <(String Function(AppLocalizations l10n) label, int color)>[
   ((l10n) => l10n.drawingPaperNight, 0xFF12142A),
   ((l10n) => l10n.drawingPaperInk, 0xFF000000),
+  ((l10n) => l10n.drawingPaperBlueprint, 0xFF14335C),
+  ((l10n) => l10n.drawingPaperChalkboard, 0xFF1E2E24),
   ((l10n) => l10n.drawingPaperCream, 0xFFF6F1E9),
-  ((l10n) => l10n.drawingPaperPaper, 0xFFFFFFFF),
+  ((l10n) => l10n.drawingPaperSnow, 0xFFFFFFFF),
+  ((l10n) => l10n.drawingPaperKraft, 0xFFDCC9A3),
+  ((l10n) => l10n.drawingPaperBlush, 0xFFF4D9DF),
+  ((l10n) => l10n.drawingPaperMint, 0xFFDCEFE7),
 ];
+
+/// A paper is "light" when the toolbar chrome needs dark ink to stay
+/// readable on it — used for both the default stroke colour and the
+/// toolbar's own contrast, independent of the app's day/night theme.
+bool isLightPaper(int color) => Color(color).computeLuminance() > 0.5;
 
 const inkColors = <int>[
   0xFFF3EFE8,
@@ -39,7 +48,7 @@ class DrawingController extends ChangeNotifier {
       width = initial.width,
       height = initial.height,
       background = initial.background,
-      color = initial.background == 0xFFF6F1E9 || initial.background == 0xFFFFFFFF ? 0xFF1B1A2E : 0xFFF3EFE8;
+      color = isLightPaper(initial.background) ? 0xFF1B1A2E : 0xFFF3EFE8;
 
   final List<Stroke> _strokes;
   final List<Stroke> _redo = [];
@@ -106,7 +115,7 @@ class DrawingController extends ChangeNotifier {
   void setBackground(int c) {
     background = c;
     // keep the default ink readable on the new paper
-    final light = c == 0xFFF6F1E9 || c == 0xFFFFFFFF;
+    final light = isLightPaper(c);
     if (light && color == 0xFFF3EFE8) color = 0xFF1B1A2E;
     if (!light && color == 0xFF1B1A2E) color = 0xFFF3EFE8;
     notifyListeners();
@@ -136,6 +145,7 @@ class _DrawingCanvasEditorState extends ConsumerState<DrawingCanvasEditor> {
   DrawingController? _ctl;
   bool _fullscreen = false;
   bool _showSize = false;
+  bool _showPaper = false;
 
   @override
   void dispose() {
@@ -237,7 +247,15 @@ class _DrawingCanvasEditorState extends ConsumerState<DrawingCanvasEditor> {
                     ctl: ctl,
                     fullscreen: _fullscreen,
                     showSize: _showSize,
-                    onToggleSize: () => setState(() => _showSize = !_showSize),
+                    showPaper: _showPaper,
+                    onToggleSize: () => setState(() {
+                      _showSize = !_showSize;
+                      _showPaper = false;
+                    }),
+                    onTogglePaper: () => setState(() {
+                      _showPaper = !_showPaper;
+                      _showSize = false;
+                    }),
                     onToggleFullscreen: _toggleFullscreen,
                     onClear: _confirmClear,
                     onEdit: () => widget.onChanged(ctl.data),
@@ -257,28 +275,41 @@ class _Toolbar extends StatelessWidget {
     required this.ctl,
     required this.fullscreen,
     required this.showSize,
+    required this.showPaper,
     required this.onToggleSize,
+    required this.onTogglePaper,
     required this.onToggleFullscreen,
     required this.onClear,
     required this.onEdit,
   });
   final DrawingController ctl;
-  final bool fullscreen, showSize;
-  final VoidCallback onToggleSize, onToggleFullscreen, onClear, onEdit;
+  final bool fullscreen, showSize, showPaper;
+  final VoidCallback onToggleSize, onTogglePaper, onToggleFullscreen, onClear, onEdit;
 
   @override
   Widget build(BuildContext context) {
-    final c = context.cm;
     final l10n = context.l10n;
-    Widget tool(BrushTool t, IconData icon, String label) => _IconBtn(
+    final accent = context.cm.accent;
+    // The toolbar's own chrome follows the chosen paper's lightness, not the
+    // app's day/night theme — a dark theme with a bright paper (or the
+    // reverse) would otherwise wash the whole toolbar out.
+    final paperLight = isLightPaper(ctl.background);
+    final fg = paperLight ? const Color(0xFF1B1A2E) : const Color(0xFFF3EFE8);
+    Color tone({bool enabled = true, bool active = false}) => !enabled ? fg.withValues(alpha: 0.28) : (active ? accent : fg);
+
+    Widget tool(BrushTool t, Widget Function(Color) icon, String label) => _IconBtn(
       icon: icon,
       label: label,
       active: ctl.tool == t,
+      color: tone(active: ctl.tool == t),
+      accentBg: accent,
       onTap: () => ctl.set(tool: t),
     );
+
     return Glass(
       radius: Rd.lg,
-      opacity: c.isDark ? 0.12 : 0.6,
+      opacity: paperLight ? 0.55 : 0.14,
+      onLightBackdrop: paperLight,
       padding: const EdgeInsets.symmetric(horizontal: Sp.xs, vertical: Sp.sm),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -288,17 +319,48 @@ class _Toolbar extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: Sp.md),
               child: Row(
                 children: [
-                  Icon(Icons.circle, size: 6, color: c.muted),
+                  Icon(Icons.circle, size: 6, color: tone(active: false)),
                   Expanded(
-                    child: Slider(
-                      value: ctl.size,
-                      min: 1,
-                      max: 24,
-                      onChanged: (v) => ctl.set(size: v),
-                      activeColor: c.accent,
-                    ),
+                    child: Slider(value: ctl.size, min: 1, max: 24, onChanged: (v) => ctl.set(size: v), activeColor: accent),
                   ),
-                  Icon(Icons.circle, size: 20, color: c.muted),
+                  Icon(Icons.circle, size: 20, color: tone(active: false)),
+                ],
+              ),
+            ),
+          if (showPaper)
+            SizedBox(
+              height: 48,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  for (final p in paperColors)
+                    Semantics(
+                      button: true,
+                      label: p.$1(l10n),
+                      selected: ctl.background == p.$2,
+                      child: GestureDetector(
+                        onTap: () {
+                          ctl.setBackground(p.$2);
+                          onEdit();
+                        },
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          alignment: Alignment.center,
+                          child: AnimatedContainer(
+                            duration: Mo.fast,
+                            width: ctl.background == p.$2 ? 36 : 28,
+                            height: ctl.background == p.$2 ? 36 : 28,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Color(p.$2),
+                              border: Border.all(color: ctl.background == p.$2 ? accent : fg.withValues(alpha: 0.35), width: 2),
+                              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 6)],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -325,7 +387,7 @@ class _Toolbar extends StatelessWidget {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: Color(col),
-                            border: Border.all(color: ctl.color == col && ctl.tool != BrushTool.eraser ? c.accent : c.border, width: 2),
+                            border: Border.all(color: ctl.color == col && ctl.tool != BrushTool.eraser ? accent : fg.withValues(alpha: 0.35), width: 2),
                           ),
                         ),
                       ),
@@ -338,13 +400,22 @@ class _Toolbar extends StatelessWidget {
           Row(
             children: [
               for (final w in <Widget>[
-                tool(BrushTool.pencil, Icons.edit_outlined, l10n.drawingPencilLabel),
-                tool(BrushTool.brush, Icons.brush_outlined, l10n.drawingBrushLabel),
-                tool(BrushTool.eraser, Icons.cleaning_services_outlined, l10n.drawingEraserLabel),
-                _IconBtn(icon: Icons.line_weight_rounded, label: l10n.drawingBrushSizeLabel, active: showSize, onTap: onToggleSize),
+                tool(BrushTool.pencil, (c) => Icon(Icons.edit_outlined, size: 22, color: c), l10n.drawingPencilLabel),
+                tool(BrushTool.brush, (c) => Icon(Icons.brush_outlined, size: 22, color: c), l10n.drawingBrushLabel),
+                tool(BrushTool.eraser, (c) => _EraserIcon(color: c), l10n.drawingEraserLabel),
                 _IconBtn(
-                  icon: Icons.undo_rounded,
+                  icon: (c) => Icon(Icons.line_weight_rounded, size: 22, color: c),
+                  label: l10n.drawingBrushSizeLabel,
+                  active: showSize,
+                  color: tone(active: showSize),
+                  accentBg: accent,
+                  onTap: onToggleSize,
+                ),
+                _IconBtn(
+                  icon: (c) => Icon(Icons.undo_rounded, size: 22, color: c),
                   label: l10n.drawingUndoLabel,
+                  color: tone(enabled: ctl.canUndo),
+                  accentBg: accent,
                   onTap: ctl.canUndo
                       ? () {
                           ctl.undo();
@@ -353,8 +424,10 @@ class _Toolbar extends StatelessWidget {
                       : null,
                 ),
                 _IconBtn(
-                  icon: Icons.redo_rounded,
+                  icon: (c) => Icon(Icons.redo_rounded, size: 22, color: c),
                   label: l10n.drawingRedoLabel,
+                  color: tone(enabled: ctl.canRedo),
+                  accentBg: accent,
                   onTap: ctl.canRedo
                       ? () {
                           ctl.redo();
@@ -362,41 +435,26 @@ class _Toolbar extends StatelessWidget {
                         }
                       : null,
                 ),
-                PopupMenuButton<int>(
-                  tooltip: l10n.drawingPaperTooltip,
-                  padding: EdgeInsets.zero,
-                  icon: Icon(Icons.texture_rounded, color: c.text),
-                  color: c.surfaceHigh,
-                  onSelected: (v) {
-                    ctl.setBackground(v);
-                    onEdit();
-                  },
-                  itemBuilder: (_) => [
-                    for (final p in paperColors)
-                      PopupMenuItem(
-                        value: p.$2,
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 18,
-                              height: 18,
-                              decoration: BoxDecoration(
-                                color: Color(p.$2),
-                                shape: BoxShape.circle,
-                                border: Border.all(color: c.border),
-                              ),
-                            ),
-                            const SizedBox(width: Sp.md),
-                            Text(p.$1(l10n), style: AppType.ui(14, color: c.text)),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-                _IconBtn(icon: Icons.delete_outline_rounded, label: l10n.drawingClearButtonLabel, onTap: ctl.strokes.isEmpty ? null : onClear),
                 _IconBtn(
-                  icon: fullscreen ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
+                  icon: (c) => Icon(Icons.texture_rounded, size: 22, color: c),
+                  label: l10n.drawingPaperTooltip,
+                  active: showPaper,
+                  color: tone(active: showPaper),
+                  accentBg: accent,
+                  onTap: onTogglePaper,
+                ),
+                _IconBtn(
+                  icon: (c) => Icon(Icons.delete_outline_rounded, size: 22, color: c),
+                  label: l10n.drawingClearButtonLabel,
+                  color: tone(enabled: ctl.strokes.isNotEmpty),
+                  accentBg: accent,
+                  onTap: ctl.strokes.isEmpty ? null : onClear,
+                ),
+                _IconBtn(
+                  icon: (c) => Icon(fullscreen ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded, size: 22, color: c),
                   label: fullscreen ? l10n.drawingExitFullScreenLabel : l10n.drawingFullScreenLabel,
+                  color: tone(),
+                  accentBg: accent,
                   onTap: onToggleFullscreen,
                 ),
               ])
@@ -410,15 +468,15 @@ class _Toolbar extends StatelessWidget {
 }
 
 class _IconBtn extends StatelessWidget {
-  const _IconBtn({required this.icon, required this.label, required this.onTap, this.active = false});
-  final IconData icon;
+  const _IconBtn({required this.icon, required this.label, required this.onTap, required this.color, required this.accentBg, this.active = false});
+  final Widget Function(Color color) icon;
   final String label;
   final VoidCallback? onTap;
+  final Color color, accentBg;
   final bool active;
 
   @override
   Widget build(BuildContext context) {
-    final c = context.cm;
     return Semantics(
       button: true,
       label: label,
@@ -430,10 +488,50 @@ class _IconBtn extends StatelessWidget {
         child: Container(
           width: 36,
           height: 36,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: active ? c.accent.withValues(alpha: 0.22) : Colors.transparent),
-          child: Icon(icon, size: 22, color: onTap == null ? c.muted.withValues(alpha: 0.4) : (active ? c.accent : c.text)),
+          decoration: BoxDecoration(shape: BoxShape.circle, color: active ? accentBg.withValues(alpha: 0.22) : Colors.transparent),
+          child: Center(child: icon(color)),
         ),
       ),
     );
   }
+}
+
+/// A hand-drawn-looking eraser mark (tilted rounded block with a worn edge)
+/// — more distinctive here than a generic cleaning/backspace icon.
+class _EraserIcon extends StatelessWidget {
+  const _EraserIcon({required this.color});
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(width: 22, height: 22, child: CustomPaint(painter: _EraserPainter(color)));
+}
+
+class _EraserPainter extends CustomPainter {
+  _EraserPainter(this.color);
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.translate(size.width / 2, size.height / 2);
+    canvas.rotate(-0.5);
+    final w = size.width * 0.82, h = size.height * 0.52;
+    final rrect = RRect.fromRectAndRadius(Rect.fromCenter(center: Offset.zero, width: w, height: h), Radius.circular(h * 0.3));
+    canvas.drawRRect(rrect, Paint()..color = color.withValues(alpha: 0.16));
+    canvas.save();
+    canvas.clipRRect(rrect);
+    canvas.drawRect(Rect.fromLTWH(w / 2 - w * 0.3, -h / 2, w * 0.3, h), Paint()..color = color.withValues(alpha: 0.3));
+    canvas.restore();
+    canvas.drawRRect(
+      rrect,
+      Paint()
+        ..color = color.withValues(alpha: 0.9)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.6,
+    );
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _EraserPainter old) => old.color != color;
 }

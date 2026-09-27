@@ -337,7 +337,6 @@
   "drawingPaperNight": "Night",
   "drawingPaperInk": "Ink",
   "drawingPaperCream": "Cream",
-  "drawingPaperPaper": "Paper",
   "drawingClearButtonLabel": "Clear canvas",
   "drawingFullScreenLabel": "Full screen",
   "drawingExitFullScreenLabel": "Exit full screen",
@@ -611,5 +610,11 @@
       }
     }
   },
-  "momentDetailReliveAction": "Relive this moment"
+  "momentDetailReliveAction": "Relive this moment",
+  "drawingPaperBlueprint": "Blueprint",
+  "drawingPaperChalkboard": "Chalkboard",
+  "drawingPaperKraft": "Kraft",
+  "drawingPaperBlush": "Blush",
+  "drawingPaperMint": "Mint",
+  "drawingPaperSnow": "Snow"
 }
