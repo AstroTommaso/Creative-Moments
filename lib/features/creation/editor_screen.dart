@@ -25,6 +25,21 @@ class EditorScreen extends ConsumerStatefulWidget {
 class _EditorScreenState extends ConsumerState<EditorScreen> {
   bool _focus = false;
 
+  @override
+  void initState() {
+    super.initState();
+    // A moment isn't locked to its starting type, but picking "Drawing" is
+    // still a request to start drawing right away — jump straight into the
+    // full canvas; "Done" there returns to this same editor, where text and
+    // photos can be added too.
+    final s = ref.read(draftProvider);
+    if (s.type == CreationType.drawing && !s.hasDrawing && !s.isEditing) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) context.push('/create/draw');
+      });
+    }
+  }
+
   Future<void> _close() async {
     final s = ref.read(draftProvider);
     final n = ref.read(draftProvider.notifier);
@@ -62,37 +77,29 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _close();
       },
-      child: s.type == CreationType.drawing
-          ? Scaffold(
-              body: DrawingCanvasEditor(
-                initial: s.drawing,
-                onChanged: (d) => ref.read(draftProvider.notifier).setDrawing(d),
-                topBar: (fullscreen, toggle) => bar,
+      child: AtmoScaffold(
+        intensity: 0,
+        body: SafeArea(
+          child: Column(
+            children: [
+              AnimatedSize(
+                duration: Mo.base,
+                curve: Mo.soft,
+                child: _focus ? const SizedBox(width: double.infinity) : bar,
               ),
-            )
-          : AtmoScaffold(
-              intensity: 0,
-              body: SafeArea(
-                child: Column(
-                  children: [
-                    AnimatedSize(
-                      duration: Mo.base,
-                      curve: Mo.soft,
-                      child: _focus ? const SizedBox(width: double.infinity) : bar,
-                    ),
-                    Expanded(
-                      child: WritingEditor(
-                        focus: _focus,
-                        onFocusChanged: (v) {
-                          setState(() => _focus = v);
-                          SystemChrome.setEnabledSystemUIMode(v ? SystemUiMode.immersiveSticky : SystemUiMode.edgeToEdge);
-                        },
-                      ),
-                    ),
-                  ],
+              Expanded(
+                child: WritingEditor(
+                  focus: _focus,
+                  onFocusChanged: (v) {
+                    setState(() => _focus = v);
+                    SystemChrome.setEnabledSystemUIMode(v ? SystemUiMode.immersiveSticky : SystemUiMode.edgeToEdge);
+                  },
                 ),
               ),
-            ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -265,7 +272,6 @@ class _WritingEditorState extends ConsumerState<WritingEditor> {
     final n = ref.read(draftProvider.notifier);
     final c = context.cm;
     final isPhoto = s.type == CreationType.photo;
-    final isFree = s.type == CreationType.freeform;
     final hint = switch (s.type) {
       CreationType.letter => context.l10n.editorHintLetter,
       CreationType.story => context.l10n.editorHintStory,
@@ -302,7 +308,7 @@ class _WritingEditorState extends ConsumerState<WritingEditor> {
                 onSubmitted: (_) => _bodyFocus.requestFocus(),
               ),
               const SizedBox(height: Sp.md),
-              if (isPhoto || s.images.isNotEmpty || s.pendingImages.isNotEmpty || s.hasDrawing || isFree) _MediaStrip(onAddPhoto: _photoSheet, big: isPhoto),
+              if (isPhoto || s.images.isNotEmpty || s.pendingImages.isNotEmpty || s.hasDrawing) _MediaStrip(onAddPhoto: _photoSheet, big: isPhoto),
               TextField(
                 controller: _body,
                 focusNode: _bodyFocus,
@@ -341,23 +347,46 @@ class _WritingEditorState extends ConsumerState<WritingEditor> {
                 padding: const EdgeInsets.symmetric(horizontal: Sp.sm, vertical: Sp.xs),
                 child: Row(
                   children: [
-                    IconButton(tooltip: context.l10n.editorUndoTooltip, onPressed: _undo.value.canUndo ? _undo.undo : null, icon: const Icon(Icons.undo_rounded)),
-                    IconButton(tooltip: context.l10n.editorRedoTooltip, onPressed: _undo.value.canRedo ? _undo.redo : null, icon: const Icon(Icons.redo_rounded)),
-                    IconButton(tooltip: context.l10n.editorAddPhotoTooltip, onPressed: _photoSheet, icon: const Icon(Icons.add_photo_alternate_outlined)),
-                    if (isFree)
-                      IconButton(
-                        tooltip: context.l10n.editorAddDrawingTooltip,
-                        onPressed: () => context.push('/create/draw'),
-                        icon: const Icon(Icons.gesture_rounded),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            IconButton(
+                              tooltip: context.l10n.editorUndoTooltip,
+                              onPressed: _undo.value.canUndo ? _undo.undo : null,
+                              icon: const Icon(Icons.undo_rounded),
+                            ),
+                            IconButton(
+                              tooltip: context.l10n.editorRedoTooltip,
+                              onPressed: _undo.value.canRedo ? _undo.redo : null,
+                              icon: const Icon(Icons.redo_rounded),
+                            ),
+                            IconButton(
+                              tooltip: context.l10n.editorAddPhotoTooltip,
+                              onPressed: _photoSheet,
+                              icon: const Icon(Icons.add_photo_alternate_outlined),
+                            ),
+                            IconButton(
+                              tooltip: context.l10n.editorAddDrawingTooltip,
+                              onPressed: () => context.push('/create/draw'),
+                              icon: const Icon(Icons.gesture_rounded),
+                            ),
+                          ],
+                        ),
                       ),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () => setState(() => _showCount = !_showCount),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: Sp.sm),
-                        child: Text(
-                          _showCount ? context.l10n.editorWordCount(s.wordCount) : context.l10n.editorWordsLabel,
-                          style: AppType.ui(12, weight: FontWeight.w700, color: c.muted),
+                    ),
+                    Flexible(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _showCount = !_showCount),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: Sp.sm),
+                          child: Text(
+                            _showCount ? context.l10n.editorWordCount(s.wordCount) : context.l10n.editorWordsLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppType.ui(12, weight: FontWeight.w700, color: c.muted),
+                          ),
                         ),
                       ),
                     ),

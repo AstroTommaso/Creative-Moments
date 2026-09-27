@@ -4,6 +4,7 @@ import 'package:creative_moments/core/constants/catalog.dart';
 import 'package:creative_moments/core/theme/app_theme.dart';
 import 'package:creative_moments/core/theme/tokens.dart';
 import 'package:creative_moments/core/theme/typography.dart';
+import 'package:creative_moments/data/models/drawing.dart';
 import 'package:creative_moments/data/models/moment.dart';
 import 'package:creative_moments/data/providers.dart';
 import 'package:creative_moments/dev/fake_backend.dart';
@@ -190,6 +191,12 @@ void main() {
       expect(find.text('EDIT ROUTE'), findsOneWidget);
     });
 
+    testWidgets('starting a fresh Drawing moment opens the canvas right away', (tester) async {
+      final c = await pumpScreen(tester, signedInBackend(), const EditorScreen(), before: (c) => c.read(draftProvider.notifier).start(CreationType.drawing));
+      expect(c.read(draftProvider).type, CreationType.drawing);
+      expect(find.text('DRAW ROUTE'), findsOneWidget);
+    });
+
     testWidgets('"I don\'t know yet" starts a freeform moment without further decisions', (tester) async {
       final c = await pumpScreen(tester, signedInBackend(), const CreateTypeScreen());
       await tester.tap(find.text("I don't know yet"));
@@ -218,6 +225,9 @@ void main() {
       expect(find.byTooltip('Redo'), findsOneWidget);
       expect(find.byTooltip('Focus mode'), findsOneWidget);
       expect(find.text('Words'), findsOneWidget);
+      // A moment isn't locked to its starting type: even a plain Writing
+      // moment can add a drawing, not just Freeform ones.
+      expect(find.byTooltip('Add a drawing'), findsOneWidget);
     });
 
     testWidgets('typing autosaves after a pause and then says Saved — not before', (tester) async {
@@ -481,6 +491,35 @@ void main() {
     testWidgets('a missing moment shows a calm not-found state', (tester) async {
       await pumpScreen(tester, signedInBackend(), const MomentDetailScreen(id: 'nope'));
       expect(find.text('Moment not found'), findsOneWidget);
+    });
+
+    testWidgets('shows a chip for every kind of content, not just the moment\'s starting type', (tester) async {
+      final b = signedInBackend(seed: true);
+      final userId = b.users[b.currentEmail]!.id;
+      const id = 'mixed-1';
+      final now = DateTime.now();
+      b.moments[id] = Moment(
+        id: id,
+        userId: userId,
+        title: 'A bit of everything',
+        type: CreationType.idea,
+        createdAt: now,
+        updatedAt: now,
+        finishedAt: now,
+        creations: [
+          Creation(id: 'c1', momentId: id, type: 'text', textContent: 'Somewhere to start.', createdAt: now),
+          Creation(
+            id: 'c2',
+            momentId: id,
+            type: 'drawing',
+            drawing: DrawingData(width: 10, height: 10, background: 0, strokes: [Stroke(tool: BrushTool.pencil, color: 0xFF000000, width: 2, points: const [Offset(0, 0)])]),
+            createdAt: now,
+          ),
+        ],
+      );
+      await pumpScreen(tester, b, const MomentDetailScreen(id: id));
+      expect(find.text('💭 Idea'), findsOneWidget);
+      expect(find.text('🎨 Drawing'), findsOneWidget);
     });
   });
 

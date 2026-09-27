@@ -92,6 +92,41 @@ void main() {
       expect(Moment.fromJson(momentJson(extra: {'finishedAt': '2026-09-25T21:41:00Z'})).isDraft, isFalse);
     });
 
+    test('contentTypes lists every kind of content actually present, not just the chosen type', () {
+      // The default fixture already mixes writing (creationType) with a photo (media).
+      expect(Moment.fromJson(momentJson()).contentTypes, [CreationType.writing, CreationType.photo]);
+
+      final stroke = Stroke(tool: BrushTool.pencil, color: 0xFF000000, width: 2, points: const [Offset(0, 0), Offset(1, 1)]);
+      final drawingOnly = Moment.fromJson(
+        momentJson(
+          extra: {
+            'creationType': 'idea',
+            'creations': [
+              {'id': 'c', 'momentId': 'm1', 'type': 'drawing', 'drawingData': DrawingData(width: 10, height: 10, background: 0, strokes: [stroke]).toJson(), 'createdAt': '2026-09-25T21:40:00Z'},
+            ],
+            'media': [],
+          },
+        ),
+      );
+      expect(drawingOnly.contentTypes, [CreationType.drawing]);
+
+      final all3 = Moment.fromJson(
+        momentJson(
+          extra: {
+            'creationType': 'idea',
+            'creations': [
+              {'id': 'c1', 'momentId': 'm1', 'type': 'text', 'textContent': 'hello', 'createdAt': '2026-09-25T21:40:00Z'},
+              {'id': 'c2', 'momentId': 'm1', 'type': 'drawing', 'drawingData': DrawingData(width: 10, height: 10, background: 0, strokes: [stroke]).toJson(), 'createdAt': '2026-09-25T21:40:00Z'},
+            ],
+          },
+        ),
+      );
+      expect(all3.contentTypes, [CreationType.idea, CreationType.drawing, CreationType.photo]);
+
+      final nothing = Moment.fromJson(momentJson(extra: {'creationType': 'idea', 'creations': [], 'media': []}));
+      expect(nothing.contentTypes, [CreationType.idea]);
+    });
+
     test('excerpt collapses whitespace and truncates', () {
       final m = Moment.fromJson(
         momentJson(

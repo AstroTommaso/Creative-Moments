@@ -128,6 +128,20 @@ class Moment {
   /// Whether this only exists from autosave and was never explicitly saved.
   bool get isDraft => finishedAt == null;
 
+  /// The kinds of content actually present, most specific first — a moment
+  /// isn't locked to whichever type it was started as: writing a letter,
+  /// then adding a sketch and a photo, shows all three instead of just
+  /// "Letter". Falls back to the chosen type when nothing is recognized.
+  List<CreationType> get contentTypes {
+    final out = <CreationType>[];
+    if (text.trim().isNotEmpty) out.add(type);
+    final d = drawing;
+    if (d != null && !d.isEmpty && !out.contains(CreationType.drawing)) out.add(CreationType.drawing);
+    if (images.isNotEmpty && !out.contains(CreationType.photo)) out.add(CreationType.photo);
+    if (out.isEmpty) out.add(type);
+    return out;
+  }
+
   String displayTitle(AppLocalizations l10n) => title.trim().isEmpty ? _fallbackTitle(l10n) : title.trim();
   String _fallbackTitle(AppLocalizations l10n) {
     final t = text.trim();

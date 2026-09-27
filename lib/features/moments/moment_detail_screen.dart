@@ -308,7 +308,7 @@ class _DetailBodyState extends ConsumerState<_DetailBody> {
                             runSpacing: Sp.sm,
                             children: [
                               if (m.timeOfDay != null) _Chip('${emojiFor(timeOptions, m.timeOfDay)} ${labelFor(l10n, timeOptions, m.timeOfDay)}'),
-                              _Chip('${m.type.emoji} ${m.type.label(l10n)}'),
+                              for (final t in m.contentTypes) _Chip('${t.emoji} ${t.label(l10n)}'),
                               if (m.hasMusic) _Chip('🎧 ${m.musicTitle}'),
                               if (m.hasLocation) _Chip('📍 ${m.locationName}'),
                             ],
